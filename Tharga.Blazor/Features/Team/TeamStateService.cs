@@ -19,6 +19,8 @@ internal class TeamStateService : ITeamStateService
     //public event EventHandler<FarmChangedEventArgs> FarmChangedEvent;
     //public event EventHandler<EventArgs> RequestReloadEvent;
 
+    public event EventHandler<TeamChangeEventArgs> TeamChangeEvent;
+
     public ITeam SelectedTeam => _selectedTeam;
 
     public void SetCurrent(ITeam team)
@@ -33,6 +35,11 @@ internal class TeamStateService : ITeamStateService
     {
         SetCurrent(team);
         _navigationManager.NavigateTo("/");
+    }
+
+    public void OnTeamChangeEvent()
+    {
+        TeamChangeEvent?.Invoke(this, new TeamChangeEventArgs());
     }
 
     //public void OverrideRedirect(Action action)

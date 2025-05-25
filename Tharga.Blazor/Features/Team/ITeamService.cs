@@ -6,4 +6,6 @@ public interface ITeamService
 {
     IAsyncEnumerable<ITeam> GetTeamsAsync(ClaimsPrincipal currentUser);
     Task<ITeam> CreateTeamAsync(ClaimsPrincipal currentUser);
+    IAsyncEnumerable<ITeamMember> GetTeamMembersAsync();
+    Task DeleteTeamAsync(ClaimsPrincipal currentUser, ITeam team);
 }

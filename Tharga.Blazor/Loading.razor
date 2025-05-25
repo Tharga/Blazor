@@ -1,0 +1,8 @@
+﻿<RadzenProgressBarCircular Value="100" ShowValue="true" Mode="ProgressBarMode.Indeterminate" ProgressBarStyle="ProgressBarStyle.Primary" Size="@Size">
+    <Template>Loading</Template>
+</RadzenProgressBarCircular>
+
+@code {
+    [Parameter]
+    public ProgressBarCircularSize Size { get; set; } = ProgressBarCircularSize.Large;
+}
