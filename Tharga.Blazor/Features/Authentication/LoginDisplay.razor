@@ -1,0 +1,66 @@
+﻿@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenProfileMenu Click="@(ClickAction)" title="@_email">
+                <Template>
+                    <RadzenGravatar Email="@_email" AlternateText="@_email" />
+                </Template>
+                <ChildContent>
+                    <RadzenProfileMenuItem Text="User profile" Icon="account_circle"/>
+                    <hr style="margin: 0;" />
+                    <RadzenProfileMenuItem Text="Logout" Icon="logout" />
+                </ChildContent>
+            </RadzenProfileMenu>
+        </Authorized>
+        <NotAuthorized>
+            <RadzenButton Text="Login" Icon="login" Click="Login" />
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+<div>&nbsp;</div>
+
+@code {
+    private string _email;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated ?? false)
+        {
+            _email = authState.User.Claims.FirstOrDefault(x => x.Type == "emails")?.Value?.Replace("[\"", "").Replace("\"]", "");
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task ClickAction(RadzenProfileMenuItem args)
+    {
+        switch (args.Icon)
+        {
+            case "account_circle":
+                NavigationManager.NavigateTo("profile");
+                break;
+            case "logout":
+                await Logout();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException($"Unknown action '{args.Icon}'.");
+        }
+    }
+
+    private Task Login()
+    {
+        var u = NavigationManager.Uri.Replace(NavigationManager.BaseUri, "");
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+        return Task.CompletedTask;
+    }
+
+    private Task Logout()
+    {
+        NavigationManager.NavigateTo("/logout", forceLoad: true);
+        return Task.CompletedTask;
+    }
+}
