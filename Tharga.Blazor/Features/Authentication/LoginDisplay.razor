@@ -9,7 +9,8 @@
                     <RadzenGravatar Email="@_email" AlternateText="@_email" />
                 </Template>
                 <ChildContent>
-                    <RadzenProfileMenuItem Text="User profile" Icon="account_circle"/>
+                    <RadzenProfileMenuItem Text="User" Icon="account_circle"/>
+                    <RadzenProfileMenuItem Text="Team" Icon="group" />
                     <hr style="margin: 0;" />
                     <RadzenProfileMenuItem Text="Logout" Icon="logout" />
                 </ChildContent>
@@ -42,6 +43,9 @@
         {
             case "account_circle":
                 NavigationManager.NavigateTo("profile");
+                break;
+            case "group":
+                NavigationManager.NavigateTo("team");
                 break;
             case "logout":
                 await Logout();
