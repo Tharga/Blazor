@@ -36,8 +36,15 @@
         set
         {
             if (_selectedTeam == value) return;
-            _selectedTeam = value;
-            TeamStateService.SetCurrentAndRefresh(_selectedTeam);
+            if (_selectedTeam != null && _selectedTeam.Key == value?.Key)
+            {
+                _selectedTeam = value;
+            }
+            else
+            {
+                _selectedTeam = value;
+                TeamStateService.SetCurrentAndRefresh(_selectedTeam);
+            }
             // Task.Run(async () => await ReportActivityAsync());
         }
     }

@@ -1,8 +1,8 @@
 ﻿namespace Tharga.Blazor.Features.Team;
 
-public interface ITeam
+public interface ITeamMember
 {
     string Key { get; }
-    string Icon { get; }
+    string EMail { get; }
     string Name { get; }
 }
