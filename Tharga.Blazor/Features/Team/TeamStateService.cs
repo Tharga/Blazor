@@ -34,7 +34,9 @@ internal class TeamStateService : ITeamStateService
     public void SetCurrentAndRefresh(ITeam team)
     {
         SetCurrent(team);
-        _navigationManager.NavigateTo("/");
+        //_navigationManager.NavigateTo("/");
+        _navigationManager.Refresh();
+        OnTeamChangeEvent();
     }
 
     public void OnTeamChangeEvent()
