@@ -41,39 +41,6 @@
         }
     }
 
-    // private ITeam SelectedTeam
-    // {
-    //     get => TeamStateService.SelectedTeam;
-    //     set => TeamStateService.SelectedTeam = value;
-    // }
-
-    // private ITeam SelectedTeam
-    // {
-    //     get => _selectedTeam;
-    //     set
-    //     {
-    //         if (_selectedTeam == value) return;
-    //         _selectedTeam = value;
-    //         // TeamStateService.SetCurrent(_selectedTeam);
-    //         // if (_selectedTeam != null && _selectedTeam.Key == value?.Key)
-    //         // {
-    //         //     _selectedTeam = value;
-    //         // }
-    //         // else
-    //         // {
-    //         //     _selectedTeam = value;
-    //         //     TeamStateService.SetCurrent(_selectedTeam, true);
-    //         // }
-    //         // Task.Run(async () => await ReportActivityAsync());
-    //     }
-    // }
-
-    // private async Task UpdateUserInfoAsync()
-    // {
-    //     //var currentUser = await FortDocsUserProvider.GetCurrentUser();
-    //     //if (currentUser != null) _currentUserEmail = currentUser.Email;
-    // }
-
     protected override async Task OnInitializedAsync()
     {
         TeamStateService.SelectedTeamChangedEvent += async (_, e) =>
@@ -87,41 +54,6 @@
             await ReloadTeams();
         };
 
-        // TeamStateService.RequestReloadEvent += async (_, _) =>
-        // {
-        //     try
-        //     {
-        //         await ReloadTeams();
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         Logger?.LogError(e, e.Message);
-        //     }
-        // };
-
-        // AuthenticationStateProvider.AuthenticationStateChanged += async e =>
-        // {
-        //     try
-        //     {
-        //         if (e.Result.User.Identity?.IsAuthenticated ?? false)
-        //         {
-        //             // await UpdateUserInfoAsync();
-        //             await ReloadTeams(e.Result);
-        //             // await ReportActivityAsync();
-        //         }
-        //     }
-        //     catch (Exception exception)
-        //     {
-        //         Logger?.LogError(exception, exception.Message);
-        //     }
-        // };
-
-        // var ast = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        // if (ast.User.Identity?.IsAuthenticated ?? false)
-        // {
-        //     //TODO: Reload menu here?
-        // }
-
         var current = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         if (current.User.Identity?.IsAuthenticated ?? false)
         {
@@ -134,9 +66,8 @@
     private async Task ReloadTeams()
     {
         _teams = await TeamService.GetTeamsAsync().ToArrayAsync();
+        SelectedTeam ??= await TeamStateService.GetSelectedTeamAsync();
         await InvokeAsync(StateHasChanged);
-
-        if (SelectedTeam == null) SelectedTeam = await TeamStateService.GetSelectedTeamAsync();
     }
 
 }

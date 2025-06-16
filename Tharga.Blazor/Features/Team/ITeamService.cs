@@ -6,6 +6,6 @@ public interface ITeamService
 
     IAsyncEnumerable<ITeam> GetTeamsAsync();
     Task<ITeam> CreateTeamAsync();
-    Task DeleteTeamAsync(ITeam team);
-    Task RenameTeamAsync(ITeam team, string name);
+    Task DeleteTeamAsync(string teamKey);
+    Task RenameTeamAsync(string teamKey, string name);
 }
