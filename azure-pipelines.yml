@@ -91,7 +91,7 @@ stages:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/*.symbols.nupkg'
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'df4b267e-c55c-4a36-8fe3-8e98d5d8dbbb/5cea672d-cb79-44f6-beb8-2eaba59e670d'
+        publishVstsFeed: 'eda8985f-7491-4ceb-b57f-a6ce8a0c96d4'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish artifacts'
