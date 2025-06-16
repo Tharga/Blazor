@@ -89,7 +89,7 @@ stages:
       displayName: 'Push nuget packages locally'
       inputs:
         command: 'push'
-        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.symbols.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'df4b267e-c55c-4a36-8fe3-8e98d5d8dbbb/5cea672d-cb79-44f6-beb8-2eaba59e670d'
 

@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tharga.Blazor", "Tharga.Bla
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1D5D61F6-8BCA-41CF-8B8C-E326A0A16D18}"
 	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
 		README.md = README.md
+		setVersionEnvironmentVariable.ps1 = setVersionEnvironmentVariable.ps1
 	EndProjectSection
 EndProject
 Global
