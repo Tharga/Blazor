@@ -1,0 +1,128 @@
+trigger:
+- master
+
+name: 0.0.$(Rev:r)
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  BQC.ForceNewBaseline: false
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+
+  - job: Build
+    displayName: Build and Test
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET 9'
+      inputs:
+        version: 9.0.x
+        includePreviewVersions: false
+
+    - task: PowerShell@2
+      displayName: 'Set version environment variable'
+      inputs:
+        filePath: 'setVersionEnvironmentVariable.ps1'
+      env:
+        SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
+        BUILD_NUMBER: $(Build.BuildNumber)
+
+    - task: NuGetToolInstaller@1
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore nuget packages'
+      inputs:
+        command: 'restore'
+        projects: '**/Tharga.Blazor*.csproj'
+        feedsToUse: 'select'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build'
+      inputs:
+        command: 'build'
+        projects: '**/Tharga.Blazor*.csproj'
+        arguments: '-c Release --no-restore /p:Version=$(Build.BuildNumber) /p:NoWarn=CS1591'
+        versioningScheme: 'byEnvVar'
+        versionEnvVar: 'messagesPackageVersion'
+
+    # - task: DotNetCoreCLI@2
+    #   displayName: 'Test'
+    #   inputs:
+    #     command: 'test'
+    #     projects: '**/Tharga.Blazor*.Tests.csproj'
+    #     arguments: '-c $(buildConfiguration) --no-build --filter "Category!=Database" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:SkipAutoProps=true /p:ExcludeByAttribute="Obsolete"'
+
+    # - task: PublishCodeCoverageResults@1
+    #   displayName: 'Publish code coverage results'
+    #   condition: succeededOrFailed()
+    #   inputs:
+    #     codeCoverageTool: 'Cobertura'
+    #     summaryFileLocation: '**/*coverage.cobertura.xml'
+
+    # - task: BuildQualityChecks@8
+    #   displayName: 'Build Quality Checks'
+    #   inputs:
+    #     checkWarnings: true
+    #     warningFailOption: 'build'
+    #     allowWarningVariance: true
+    #     warningVariance: '5'
+    #     checkCoverage: false
+    #     coverageFailOption: 'build'
+    #     coverageType: 'lines'
+    #     allowCoverageVariance: true
+    #     coverageVariance: '5'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack Tharga.Blazor'
+      inputs:
+        command: 'pack'
+        packagesToPack: '**/Tharga.Blazor.csproj'
+        versioningScheme: 'byBuildNumber'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Push nuget packages locally'
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: 'df4b267e-c55c-4a36-8fe3-8e98d5d8dbbb/5cea672d-cb79-44f6-beb8-2eaba59e670d'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish artifacts'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+
+- stage: Release
+  displayName: Release
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+  jobs:
+
+  - job: Release
+    displayName: Release
+    steps:
+    - download: current
+      artifact: drop
+    - checkout: self
+      persistCredentials: true
+
+    # - task: NuGetCommand@2
+    #   displayName: 'Push nuget packages to nuget.org'
+    #   inputs:
+    #     command: 'push'
+    #     packagesToPush: '$(Pipeline.Workspace)/**/*.nupkg;!$(Pipeline.Workspace)/**/*.symbols.nupkg'
+    #     nuGetFeedType: 'external'
+    #     publishFeedCredentials: 'Nuget.org'
+
+    - script: |
+         git tag $(Build.BuildNumber)
+         git push origin $(Build.BuildNumber)
+      workingDirectory: $(Build.SourcesDirectory)
+      displayName: Tag
