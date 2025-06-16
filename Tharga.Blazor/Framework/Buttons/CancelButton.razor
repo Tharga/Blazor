@@ -1,0 +1,9 @@
+﻿<StandardButton Text="@Text" Icon="cancel" Click="@Click" Type="@StandardButton.EButtonType.Normal" Variant="Variant.Outlined" />
+
+@code {
+    [Parameter]
+    public string Text { get; set; } = "Cancel";
+
+    [Parameter]
+    public Func<Task> Click { get; set; }
+}

@@ -1,0 +1,43 @@
+﻿@using Microsoft.Extensions.Options
+@rendermode CustomRenderModes.StandardMode
+@inject BreadCrumbService BreadCrumbService
+@inject IOptions<ThargaBlazorOptions> Options
+
+@if (ShowRoot)
+{
+    @if (BreadCrumbService.BreadCrumbItems.Any())
+    {
+        <RadzenBreadCrumbItem Text="@MainTitle" Path="/" />
+    }
+    else
+    {
+        <RadzenBreadCrumbItem Text="@MainTitle" />
+    }
+}
+
+@foreach (var item in BreadCrumbService.BreadCrumbItems)
+{
+    @if (!string.IsNullOrEmpty(item.Path))
+    {
+        <RadzenBreadCrumbItem Text="@item.Text" Path="@item.Path" />
+    }
+    else
+    {
+        <RadzenBreadCrumbItem Text="@item.Text" />
+    }
+}
+
+@code {
+
+    [Parameter]
+    public bool ShowRoot { get; set; } = false;
+
+    private string MainTitle { get; set; } = "Untitled";
+
+    protected override Task OnInitializedAsync()
+    {
+        MainTitle = Options?.Value.Title;
+        BreadCrumbService.ChangeEvent += async (_, _) => { await InvokeAsync(StateHasChanged); };
+        return base.OnInitializedAsync();
+    }
+}
