@@ -1,8 +1,6 @@
-﻿@using Microsoft.Extensions.Logging
-@inject AuthenticationStateProvider AuthenticationStateProvider
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ITeamStateService TeamStateService
 @inject ITeamService TeamService
-@inject ILogger<TeamSelector> Logger
 
 <AuthorizeView>
     <Authorized>
@@ -27,7 +25,6 @@
 
 @code {
     private ITeam[] _teams;
-    private string _currentUserEmail;
     private ITeam _selectedTeam;
 
     private ITeam SelectedTeam
@@ -35,7 +32,7 @@
         get => _selectedTeam;
         set
         {
-            if (_selectedTeam == value) return;
+            if (Equals(_selectedTeam, value)) return;
             _selectedTeam = value;
             TeamStateService.SetSelectedTeamAsync(_selectedTeam);
         }
@@ -66,8 +63,9 @@
     private async Task ReloadTeams()
     {
         _teams = await TeamService.GetTeamsAsync().ToArrayAsync();
-        SelectedTeam ??= await TeamStateService.GetSelectedTeamAsync();
-        await InvokeAsync(StateHasChanged);
+        var selectedTeam = await TeamStateService.GetSelectedTeamAsync();
+        SelectedTeam ??= selectedTeam;
+        StateHasChanged();
     }
 
 }

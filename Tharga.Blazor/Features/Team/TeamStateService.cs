@@ -24,9 +24,10 @@ internal class TeamStateService : ITeamStateService
 
     public async Task<ITeam> GetSelectedTeamAsync()
     {
-        if (_selectedTeam == null)
+        var teams = await _teamService.GetTeamsAsync().ToArrayAsync();
+
+        if (_selectedTeam == null || teams.All(x => x.Key != _selectedTeam.Key) || teams.FirstOrDefault(x => x.Key == _selectedTeam.Key)?.Name != _selectedTeam.Name)
         {
-            var teams = await _teamService.GetTeamsAsync().ToArrayAsync();
             if (!teams.Any())
             {
                 var team = await _teamService.CreateTeamAsync();
