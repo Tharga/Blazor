@@ -2,9 +2,10 @@
 
 public interface ITeamStateService
 {
-    event EventHandler<TeamChangeEventArgs> TeamChangeEvent;
+    event EventHandler<TeamsListChangedEventArgs> TeamsListChangedEvent;
+    event EventHandler<SelectedTeamChangedEventArgs> SelectedTeamChangedEvent;
 
-    ITeam SelectedTeam { get; }
-    void SetCurrentAndRefresh(ITeam team);
-    void OnTeamChangeEvent();
+    Task<ITeam> GetSelectedTeamAsync();
+    Task<string> GetSelectedTeamKeyAsync();
+    Task SetSelectedTeamAsync(ITeam selectedTeam);
 }

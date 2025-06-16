@@ -6,7 +6,7 @@
 
 <AuthorizeView>
     <Authorized>
-        @if (_teams == null)
+        @if (_teams == null || SelectedTeam == null)
         {
             <RadzenProgressBarCircular Value="100" Mode="ProgressBarMode.Indeterminate" ShowValue="true" Size="ProgressBarCircularSize.ExtraSmall">
                 <Template>Loading...</Template>
@@ -14,21 +14,21 @@
         }
         else if (_teams.Length == 1)
         {
-            <RadzenImage Path="@_selectedTeam.Icon" class="rz-gravatar" Visible="@(!string.IsNullOrEmpty(_selectedTeam.Icon))" />
-            <span>@_selectedTeam.Name</span>
+            <RadzenImage Path="@SelectedTeam.Icon" class="rz-gravatar" Visible="@(!string.IsNullOrEmpty(SelectedTeam.Icon))" />
+            <span>@SelectedTeam.Name</span>
         }
         else if (_teams.Length > 1)
         {
-            <RadzenImage Path="@_selectedTeam.Icon" class="rz-gravatar" Visible="@(!string.IsNullOrEmpty(_selectedTeam.Icon))" />
+            <RadzenImage Path="@SelectedTeam.Icon" class="rz-gravatar" Visible="@(!string.IsNullOrEmpty(SelectedTeam.Icon))" />
             <RadzenDropDown @bind-Value=@SelectedTeam Data="@(_teams.OrderBy(f => f.Name))" TextProperty="Name" />
         }
     </Authorized>
 </AuthorizeView>
 
 @code {
-    private ITeam _selectedTeam;
     private ITeam[] _teams;
     private string _currentUserEmail;
+    private ITeam _selectedTeam;
 
     private ITeam SelectedTeam
     {
@@ -36,18 +36,37 @@
         set
         {
             if (_selectedTeam == value) return;
-            if (_selectedTeam != null && _selectedTeam.Key == value?.Key)
-            {
-                _selectedTeam = value;
-            }
-            else
-            {
-                _selectedTeam = value;
-                TeamStateService.SetCurrentAndRefresh(_selectedTeam);
-            }
-            // Task.Run(async () => await ReportActivityAsync());
+            _selectedTeam = value;
+            TeamStateService.SetSelectedTeamAsync(_selectedTeam);
         }
     }
+
+    // private ITeam SelectedTeam
+    // {
+    //     get => TeamStateService.SelectedTeam;
+    //     set => TeamStateService.SelectedTeam = value;
+    // }
+
+    // private ITeam SelectedTeam
+    // {
+    //     get => _selectedTeam;
+    //     set
+    //     {
+    //         if (_selectedTeam == value) return;
+    //         _selectedTeam = value;
+    //         // TeamStateService.SetCurrent(_selectedTeam);
+    //         // if (_selectedTeam != null && _selectedTeam.Key == value?.Key)
+    //         // {
+    //         //     _selectedTeam = value;
+    //         // }
+    //         // else
+    //         // {
+    //         //     _selectedTeam = value;
+    //         //     TeamStateService.SetCurrent(_selectedTeam, true);
+    //         // }
+    //         // Task.Run(async () => await ReportActivityAsync());
+    //     }
+    // }
 
     // private async Task UpdateUserInfoAsync()
     // {
@@ -57,15 +76,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var current = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (current.User.Identity?.IsAuthenticated ?? false)
+        TeamStateService.SelectedTeamChangedEvent += async (_, e) =>
         {
-            await ReloadTeams(current);
-        }
+            _selectedTeam = e.SelectedTeam;
+            await InvokeAsync(StateHasChanged);
+        };
 
-        TeamStateService.TeamChangeEvent += async (_, _) =>
+        TeamStateService.TeamsListChangedEvent += async (_, _) =>
         {
-            await ReloadTeams(current);
+            await ReloadTeams();
         };
 
         // TeamStateService.RequestReloadEvent += async (_, _) =>
@@ -80,22 +99,22 @@
         //     }
         // };
 
-        AuthenticationStateProvider.AuthenticationStateChanged += async e =>
-        {
-            try
-            {
-                if (e.Result.User.Identity?.IsAuthenticated ?? false)
-                {
-                    // await UpdateUserInfoAsync();
-                    await ReloadTeams(e.Result);
-                    // await ReportActivityAsync();
-                }
-            }
-            catch (Exception exception)
-            {
-                Logger?.LogError(exception, exception.Message);
-            }
-        };
+        // AuthenticationStateProvider.AuthenticationStateChanged += async e =>
+        // {
+        //     try
+        //     {
+        //         if (e.Result.User.Identity?.IsAuthenticated ?? false)
+        //         {
+        //             // await UpdateUserInfoAsync();
+        //             await ReloadTeams(e.Result);
+        //             // await ReportActivityAsync();
+        //         }
+        //     }
+        //     catch (Exception exception)
+        //     {
+        //         Logger?.LogError(exception, exception.Message);
+        //     }
+        // };
 
         // var ast = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         // if (ast.User.Identity?.IsAuthenticated ?? false)
@@ -103,50 +122,21 @@
         //     //TODO: Reload menu here?
         // }
 
+        var current = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (current.User.Identity?.IsAuthenticated ?? false)
+        {
+            await ReloadTeams();
+        }
+
         await base.OnInitializedAsync();
     }
 
-    private async Task ReloadTeams(AuthenticationState current)
+    private async Task ReloadTeams()
     {
-        _teams = await TeamService.GetTeamsAsync(current.User).ToArrayAsync();
+        _teams = await TeamService.GetTeamsAsync().ToArrayAsync();
+        await InvokeAsync(StateHasChanged);
 
-        if (!_teams.Any())
-        {
-            var team = await TeamService.CreateTeamAsync(current.User);
-            _teams = [team];
-            SelectedTeam = team;
-        }
-        else if (_teams.Length == 1)
-        {
-            SelectedTeam = _teams.Single();
-        }
-        else if (SelectedTeam == null || !_teams.Contains(SelectedTeam))
-        {
-            SelectedTeam = TeamStateService.SelectedTeam != null && _teams.Contains(TeamStateService.SelectedTeam)
-                ? TeamStateService.SelectedTeam
-                : _teams.FirstOrDefault();
-        }
-
-        //TODO: Do this on the SelectedTeam-property, if it actually changes?
-        StateHasChanged();
-
-        // _teams = await FarmService.GetAsync();
-
-        // if (_teams != null)
-        // {
-        //     if (_teams.Length == 1)
-        //     {
-        //         SelectedTeam = _teams.Single();
-        //     }
-        //     else if (SelectedTeam == null || !_teams.Contains(SelectedTeam))
-        //     {
-        //         SelectedTeam = TeamStateService.CurrentFarm != null && _teams.Contains(TeamStateService.CurrentFarm)
-        //             ? TeamStateService.CurrentFarm
-        //             : _teams.FirstOrDefault();
-        //     }
-
-        //     StateHasChanged();
-        // }
+        if (SelectedTeam == null) SelectedTeam = await TeamStateService.GetSelectedTeamAsync();
     }
 
 }
