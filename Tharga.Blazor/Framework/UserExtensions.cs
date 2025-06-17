@@ -14,4 +14,22 @@ public static class UserExtensions
     {
         return claimsPrincipal.Claims.FirstOrDefault(x => x.Type == "emails")?.Value?.Replace("[\"", "").Replace("\"]", "");
     }
+
+    public static string GetKey(this AuthenticationState context)
+    {
+        return context.User.GetKey();
+    }
+
+    public static string GetKey(this ClaimsPrincipal claimsPrincipal)
+    {
+        var key = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(key))
+        {
+            key = claimsPrincipal.FindFirst("sub")?.Value;
+        }
+
+        return key;
+    }
+
 }
