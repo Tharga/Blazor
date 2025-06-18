@@ -1,14 +1,16 @@
-﻿namespace Tharga.Blazor.Features.Team;
+﻿using System.Collections.Generic;
+using System.Security.Claims;
+
+namespace Tharga.Blazor.Features.Team;
 
 public interface ITeamService
 {
     event EventHandler<TeamsListChangedEventArgs> TeamsListChangedEvent;
 
-    IAsyncEnumerable<ITeam> GetTeamsAsync();
+    IAsyncEnumerable<ITeam> GetTeamsAsync(ClaimsPrincipal claimsPrincipal = null);
     Task<ITeam> CreateTeamAsync();
     Task DeleteTeamAsync(string teamKey);
-    //Task RenameTeamAsync(string teamKey, string name);
-    //Task AddUserAsync();
+    IAsyncEnumerable<string> GetRolesAsync(ITeam team);
 }
 
 public interface ITeamService<T> : ITeamService
