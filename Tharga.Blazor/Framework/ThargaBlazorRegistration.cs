@@ -7,7 +7,7 @@ namespace Tharga.Blazor.Framework;
 
 public static class ThargaBlazorRegistration
 {
-    public static void RegisterThargaBlazor(this IServiceCollection services, Action<ThargaBlazorOptions> options = default)
+    public static void RegisterThargaBlazor(this IServiceCollection services, Action<ThargaBlazorOptions> options = null)
     {
         services.AddScoped<BreadCrumbService>();
         services.AddScoped<ITeamStateService, TeamStateService>();

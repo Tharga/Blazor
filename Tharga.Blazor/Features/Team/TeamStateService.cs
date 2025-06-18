@@ -1,5 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 
 namespace Tharga.Blazor.Features.Team;
 
@@ -8,13 +10,18 @@ internal class TeamStateService : ITeamStateService
     private readonly ITeamService _teamService;
     private readonly NavigationManager _navigationManager;
     private readonly ILocalStorageService _localStorageService;
+    private readonly IJSRuntime _jSRuntime;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private ITeam _selectedTeam;
 
-    public TeamStateService(ITeamService teamService, NavigationManager navigationManager, ILocalStorageService localStorageService)
+    public TeamStateService(ITeamService teamService, NavigationManager navigationManager, ILocalStorageService localStorageService, IJSRuntime jSRuntime, AuthenticationStateProvider authenticationStateProvider)
     {
         _teamService = teamService;
         _navigationManager = navigationManager;
         _localStorageService = localStorageService;
+        _jSRuntime = jSRuntime;
+        _authenticationStateProvider = authenticationStateProvider;
 
         _teamService.TeamsListChangedEvent += (s, e) => { TeamsListChangedEvent?.Invoke(s, e); };
     }
@@ -24,30 +31,56 @@ internal class TeamStateService : ITeamStateService
 
     public async Task<ITeam> GetSelectedTeamAsync()
     {
-        var teams = await _teamService.GetTeamsAsync().ToArrayAsync();
-
-        if (_selectedTeam == null || teams.All(x => x.Key != _selectedTeam.Key) || teams.FirstOrDefault(x => x.Key == _selectedTeam.Key)?.Name != _selectedTeam.Name)
+        try
         {
-            if (!teams.Any())
+            await _semaphore.WaitAsync();
+            var teams = await _teamService.GetTeamsAsync().ToArrayAsync();
+
+            if (_selectedTeam == null || teams.All(x => x.Key != _selectedTeam.Key) || teams.FirstOrDefault(x => x.Key == _selectedTeam.Key)?.Name != _selectedTeam.Name)
             {
-                var team = await _teamService.CreateTeamAsync();
-                _selectedTeam = team;
-                SelectedTeamChangedEvent?.Invoke(this, new SelectedTeamChangedEventArgs(_selectedTeam));
+                var auth = await _authenticationStateProvider.GetAuthenticationStateAsync();
+                var t = auth.User.Claims.FirstOrDefault(x => x.Type == "team_id");
+                if (t != null)
+                {
+                    var team = teams.FirstOrDefault(x => x.Key == t.Value);
+                    await AssignTeamAsync(team);
+                }
+                else if (!teams.Any())
+                {
+                    var team = await _teamService.CreateTeamAsync();
+                    await AssignTeamAsync(team, true);
+                }
+                else if (teams.Length == 1)
+                {
+                    await AssignTeamAsync(teams.Single(), true);
+                }
+                else
+                {
+                    var teamKey = await _localStorageService.GetItemAsStringAsync("SelectedTeam");
+                    await AssignTeamAsync(teams.FirstOrDefault(x => x.Key == teamKey) ?? teams.FirstOrDefault(), true);
+                }
             }
-            else if (teams.Length == 1)
-            {
-                _selectedTeam = teams.Single();
-                SelectedTeamChangedEvent?.Invoke(this, new SelectedTeamChangedEventArgs(_selectedTeam));
-            }
-            else
-            {
-                var teamKey = await _localStorageService.GetItemAsStringAsync("SelectedTeam");
-                _selectedTeam = teams.FirstOrDefault(x => x.Key == teamKey) ?? teams.FirstOrDefault();
-                SelectedTeamChangedEvent?.Invoke(this, new SelectedTeamChangedEventArgs(_selectedTeam));
-            }
+
+            return _selectedTeam;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    private async Task AssignTeamAsync(ITeam team, bool refresh = false)
+    {
+        _selectedTeam = team;
+
+        if (refresh)
+        {
+            await _jSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'selected_team_id={_selectedTeam.Key}; path=/'");
+            _navigationManager.Refresh(true);
+            return;
         }
 
-        return _selectedTeam;
+        SelectedTeamChangedEvent?.Invoke(this, new SelectedTeamChangedEventArgs(_selectedTeam));
     }
 
     public async Task<string> GetSelectedTeamKeyAsync()
@@ -62,94 +95,8 @@ internal class TeamStateService : ITeamStateService
 
         _selectedTeam = selectedTeam;
         await _localStorageService.SetItemAsStringAsync("SelectedTeam", selectedTeam.Key);
-        //SelectedTeamChangedEvent?.Invoke(this, new SelectedTeamChangedEventArgs(_selectedTeam));
+
+        await _jSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'selected_team_id={_selectedTeam.Key}; path=/'");
         _navigationManager.Refresh(true);
     }
-
-    //public ITeam SelectedTeam
-    //{
-    //    get
-    //    {
-    //        return _selectedTeam;
-    //    }
-    //    set
-    //    {
-    //        if (_selectedTeam == value) return;
-    //        _selectedTeam = value;
-    //        Task.Run(async () =>
-    //        {
-    //            await _localStorageService.SetItemAsStringAsync("SelectedTeam", value.Key);
-    //        });
-    //    }
-    //}
-
-    //public async Task<string> GetLastSelectedTeamKeyAsync()
-    //{
-    //    var result = await _localStorageService.GetItemAsStringAsync("SelectedTeam");
-    //    return result;
-    //}
-
-    //public ITeam SelectedTeam => _selectedTeam;
-
-    //public async Task SetCurrent(ITeam team)
-    //{
-    //    if (_selectedTeam?.Key == team.Key) return;
-
-    //    var firstTime = _selectedTeam == null;
-    //    _selectedTeam = team;
-    //    await _localStorageService.SetItemAsStringAsync("Team", team.Key);
-    //    if (!firstTime)
-    //    {
-    //        //TODO: Here the selection changed, we need to reload data but without missing the selected team
-    //        _navigationManager.Refresh(true);
-    //    }
-    //    //_navigationManager.Refresh(refresh);
-    //    OnTeamChangeEvent();
-    //}
-
-    ////public async Task<bool> SetCurrent(ITeam team, bool refresh)
-    ////{
-    ////    var change = _selectedTeam != null && _selectedTeam != team;
-    ////    _selectedTeam = team;
-    ////    //_localStorageService.SetItem("Team", team.Key);
-    ////    await _localStorageService.SetItemAsStringAsync("Team", team.Key);
-    ////    return change;
-    ////}
-
-    ////public async Task SetCurrentAndRefresh(ITeam team)
-    ////{
-    ////    var changed = await SetCurrent(team);
-    ////    //_navigationManager.NavigateTo("/");
-    ////    //_navigationManager.Refresh(changed);
-    ////    _navigationManager.Refresh(false);
-    ////    OnTeamChangeEvent();
-    ////}
-
-    //public void OnTeamChangeEvent()
-    //{
-    //    TeamChangeEvent?.Invoke(this, new TeamChangeEventArgs());
-    //}
-
-    //public async Task<string> GetDefaultTeamKey()
-    //{
-    //    try
-    //    {
-    //        return await _localStorageService.GetItemAsStringAsync("Team");
-    //    }
-    //    catch
-    //    {
-    //        return null;
-    //    }
-    //}
-
-    ////public void OverrideRedirect(Action action)
-    ////{
-    ////    _doNotRedirect.TryAdd(_navigationManager.Uri, true);
-    ////    FarmChangedEvent += (_, _) => { action?.Invoke(); };
-    ////}
-
-    ////public void RequestReload()
-    ////{
-    ////    RequestReloadEvent?.Invoke(this, EventArgs.Empty);
-    ////}
 }
