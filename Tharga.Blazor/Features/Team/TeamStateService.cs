@@ -31,15 +31,18 @@ internal class TeamStateService : ITeamStateService
 
     public async Task<ITeam> GetSelectedTeamAsync()
     {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        if (!(authState.User.Identity?.IsAuthenticated ?? false)) return null;
+
         try
         {
             await _semaphore.WaitAsync();
+
             var teams = await _teamService.GetTeamsAsync().ToArrayAsync();
 
             if (_selectedTeam == null || teams.All(x => x.Key != _selectedTeam.Key) || teams.FirstOrDefault(x => x.Key == _selectedTeam.Key)?.Name != _selectedTeam.Name)
             {
-                var auth = await _authenticationStateProvider.GetAuthenticationStateAsync();
-                var t = auth.User.Claims.FirstOrDefault(x => x.Type == "team_id");
+                var t = authState.User.Claims.FirstOrDefault(x => x.Type == "team_id");
                 if (t != null)
                 {
                     var team = teams.FirstOrDefault(x => x.Key == t.Value);
@@ -86,7 +89,7 @@ internal class TeamStateService : ITeamStateService
     public async Task<string> GetSelectedTeamKeyAsync()
     {
         var team = await GetSelectedTeamAsync();
-        return team.Key;
+        return team?.Key;
     }
 
     public async Task SetSelectedTeamAsync(ITeam selectedTeam)
