@@ -15,9 +15,9 @@ stages:
 - stage: Build
   displayName: Build
   jobs:
-
   - job: Build
     displayName: Build and Test
+
     steps:
     - task: UseDotNet@2
       displayName: 'Use .NET 9'
@@ -51,33 +51,6 @@ stages:
         versioningScheme: 'byEnvVar'
         versionEnvVar: 'messagesPackageVersion'
 
-    # - task: DotNetCoreCLI@2
-    #   displayName: 'Test'
-    #   inputs:
-    #     command: 'test'
-    #     projects: '**/Tharga.Blazor*.Tests.csproj'
-    #     arguments: '-c $(buildConfiguration) --no-build --filter "Category!=Database" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:SkipAutoProps=true /p:ExcludeByAttribute="Obsolete"'
-
-    # - task: PublishCodeCoverageResults@1
-    #   displayName: 'Publish code coverage results'
-    #   condition: succeededOrFailed()
-    #   inputs:
-    #     codeCoverageTool: 'Cobertura'
-    #     summaryFileLocation: '**/*coverage.cobertura.xml'
-
-    # - task: BuildQualityChecks@8
-    #   displayName: 'Build Quality Checks'
-    #   inputs:
-    #     checkWarnings: true
-    #     warningFailOption: 'build'
-    #     allowWarningVariance: true
-    #     warningVariance: '5'
-    #     checkCoverage: false
-    #     coverageFailOption: 'build'
-    #     coverageType: 'lines'
-    #     allowCoverageVariance: true
-    #     coverageVariance: '5'
-
     - task: DotNetCoreCLI@2
       displayName: 'Pack Tharga.Blazor'
       inputs:
@@ -107,19 +80,25 @@ stages:
 
   - job: Release
     displayName: Release
+
     steps:
     - download: current
       artifact: drop
     - checkout: self
       persistCredentials: true
 
-    # - task: NuGetCommand@2
-    #   displayName: 'Push nuget packages to nuget.org'
-    #   inputs:
-    #     command: 'push'
-    #     packagesToPush: '$(Pipeline.Workspace)/**/*.nupkg;!$(Pipeline.Workspace)/**/*.symbols.nupkg'
-    #     nuGetFeedType: 'external'
-    #     publishFeedCredentials: 'Nuget.org'
+    - script: |
+        echo "Files in workspace:"
+        dir "$(Pipeline.Workspace)/drop" /s /b
+      displayName: 'List pipeline workspace drop files'
+
+    - task: NuGetCommand@2
+      displayName: 'Push nuget packages to nuget.org'
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Pipeline.Workspace)/**/*.symbols.nupkg'
+        nuGetFeedType: 'external'
+        publishFeedCredentials: 'Nuget.org'
 
     - script: |
          git tag $(Build.BuildNumber)
