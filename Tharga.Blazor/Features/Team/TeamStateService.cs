@@ -45,7 +45,7 @@ internal class TeamStateService : ITeamStateService
                 var t = authState.User.Claims.FirstOrDefault(x => x.Type == "team_id");
                 if (t != null)
                 {
-                    var team = teams.FirstOrDefault(x => x.Key == t.Value);
+                    var team = teams.FirstOrDefault(x => x.Key == t.Value) ?? teams.FirstOrDefault();
                     await AssignTeamAsync(team);
                 }
                 else if (!teams.Any())

@@ -31,7 +31,7 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated ?? false)
         {
-            _email = authState.User.ToEmail();
+            _email = authState.User.GetEmail();
         }
 
         await base.OnInitializedAsync();
