@@ -5,25 +5,21 @@ namespace Tharga.Blazor.Framework;
 
 public static class UserExtensions
 {
-    [Obsolete("Use Toolkit when implemented.")]
     public static string GetEmail(this AuthenticationState context)
     {
         return context.User.GetEmail();
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string GetEmail(this ClaimsIdentity claimsIdentity)
     {
         return claimsIdentity.Claims.GetEmail();
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string GetEmail(this ClaimsPrincipal claimsPrincipal)
     {
         return claimsPrincipal.Claims.GetEmail();
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string GetEmail(this IEnumerable<Claim> claims)
     {
         var enumerable = claims as Claim[] ?? claims.ToArray();
@@ -35,12 +31,14 @@ public static class UserExtensions
         {
             var preferredUsername = enumerable.FirstOrDefault(x => x.Type == "preferred_username")?.Value;
             if (preferredUsername?.Contains("@") ?? false) email = preferredUsername;
+
+            var name = enumerable.FirstOrDefault(x => x.Type == "name")?.Value;
+            if (name?.Contains("@") ?? false) email = name;
         }
 
         return email;
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string GetEmailDomain(this ClaimsIdentity item)
     {
         var email = item?.GetEmail();
@@ -56,13 +54,11 @@ public static class UserExtensions
         }
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string GetKey(this AuthenticationState context)
     {
         return context.User.GetKey();
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string GetKey(this ClaimsPrincipal claimsPrincipal)
     {
         var key = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -75,7 +71,6 @@ public static class UserExtensions
         return key;
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static void AddRoleForDomain(this ClaimsPrincipal claimsPrincipal, string role, params string[] domains)
     {
         if (claimsPrincipal == null || claimsPrincipal.Identity == null) throw new ArgumentNullException(nameof(claimsPrincipal), "ClaimsPrincipal or its Identity cannot be null.");
@@ -91,6 +86,32 @@ public static class UserExtensions
             && !roleClaims.Contains(role, StringComparer.InvariantCultureIgnoreCase))
         {
             claimsIdentity.AddClaim(new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", role));
+        }
+    }
+
+    public static IEnumerable<string> GetRoles(this AuthenticationState context)
+    {
+        return context.User.GetRoles();
+    }
+
+    public static IEnumerable<string> GetRoles(this ClaimsIdentity claimsIdentity)
+    {
+        return claimsIdentity.Claims.GetRoles();
+    }
+
+    public static IEnumerable<string> GetRoles(this ClaimsPrincipal claimsPrincipal)
+    {
+        return claimsPrincipal.Claims.GetRoles();
+    }
+
+    public static IEnumerable<string> GetRoles(this IEnumerable<Claim> claims)
+    {
+        foreach (var claim in claims)
+        {
+            if (claim.Type == ClaimTypes.Role || claim.Type.EndsWith("role", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return claim.Value;
+            }
         }
     }
 }

@@ -1,18 +1,15 @@
 ﻿namespace Tharga.Blazor.Framework;
 
-//TODO: Move to toolkit
 public static class ByteSizeExtensions
 {
     private static readonly string[] ShortUnits = { "B", "KB", "MB", "GB", "TB", "PB", "EB" };
     private static readonly string[] FullUnits = { "Bytes", "Kilobytes", "Megabytes", "Gigabytes", "Terabytes", "Petabytes", "Exabytes" };
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string ToReadableByteSize(this int byteCount, bool useFullUnit = false, int decimalPlaces = 0)
     {
         return ((long)byteCount).ToReadableByteSize(useFullUnit, decimalPlaces);
     }
 
-    [Obsolete("Use Toolkit when implemented.")]
     public static string ToReadableByteSize(this long byteCount, bool useFullUnit = false, int decimalPlaces = 0)
     {
         if (byteCount < 0) throw new ArgumentOutOfRangeException(nameof(byteCount), "Byte count cannot be negative.");
