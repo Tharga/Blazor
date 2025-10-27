@@ -7,12 +7,6 @@ namespace Tharga.Blazor.Framework;
 
 public static class ThargaBlazorRegistration
 {
-    [Obsolete($"Use {nameof(AddThargaBlazor)} instead.")]
-    public static void RegisterThargaBlazor(this IServiceCollection services, Action<ThargaBlazorOptions> options = null)
-    {
-        AddThargaBlazor(services, options);
-    }
-
     public static void AddThargaBlazor(this IServiceCollection services, Action<ThargaBlazorOptions> options = null)
     {
         services.AddScoped<BreadCrumbService>();
