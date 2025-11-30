@@ -2,7 +2,7 @@
 
 public interface ITeamMember
 {
-    //string Key { get; }
+    string Key { get; }
     string EMail { get; }
-    //string Name { get; }
+    DateTime? LastSeen { get; }
 }

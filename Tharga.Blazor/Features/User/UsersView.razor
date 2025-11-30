@@ -1,0 +1,78 @@
+﻿@using Tharga.Blazor.Features.Team
+@typeparam TMember where TMember : ITeamMember
+@inject ITeamService TeamService
+
+@if (_teams == null)
+{
+    <Loading />
+}
+else
+{
+    <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+        <RadzenCard>
+            <RadzenDataGrid Data="@_members" TItem="UserModel">
+                <Columns>
+                    <RadzenDataGridColumn Title="Key" Property="@nameof(UserModel.Key)" />
+                    <RadzenDataGridColumn Title="EMail" Property="@nameof(UserModel.EMail)" />
+                    <RadzenDataGridColumn Title="Last Seen" Property="@nameof(UserModel.LastSeen)">
+                        <Template>
+                            <DateTimeView Date="@context.LastSeen" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Teams">
+                        <Template>
+                            @string.Join(", ", context.Teams.Select(x => x.Name))
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenCard>
+        <RadzenCard>
+            <RadzenDataGrid Data="@_teams" TItem="ITeam<TMember>">
+                <Template Context="team">
+                    <RadzenDataGrid Data="@team.Members" TItem="TMember">
+                        <Columns>
+                            <RadzenDataGridColumn Title="Key" Property="@nameof(ITeamMember.Key)" />
+                            <RadzenDataGridColumn Title="EMail" Property="@nameof(ITeamMember.EMail)" />
+                            <RadzenDataGridColumn Title="Last Seen" Property="@nameof(UserModel.LastSeen)">
+                                <Template>
+                                    <DateTimeView Date="@context.LastSeen" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </Template>
+                <Columns>
+                    <RadzenDataGridColumn Title="Key" Property="Key" />
+                    <RadzenDataGridColumn Title="Icon" Property="Icon" />
+                    <RadzenDataGridColumn Title="Name" Property="Name" />
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenCard>
+    </RadzenStack>
+}
+
+@code {
+    private ITeam<TMember>[] _teams;
+    private UserModel[] _members;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _teams = await TeamService.GetAllTeamsAsync<TMember>().ToArrayAsync();
+        _members = _teams
+            .Where(x => x.Members != null)
+            .SelectMany(x => x.Members)
+            .GroupBy(x => (K: x.Key, E: x.EMail))
+            .Select(x => new UserModel
+            {
+                Key = x.Key.K,
+                EMail = x.Key.E,
+                LastSeen = x.Min(x => x.LastSeen),
+                Teams = _teams.Where(y => y.Members != null && y.Members.Any(z => z.EMail == x.First().EMail)).OrderBy(y => y.Name).ToArray<ITeam>()
+            })
+            .ToArray();
+
+        await base.OnInitializedAsync();
+    }
+
+}
