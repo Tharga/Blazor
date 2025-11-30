@@ -12,6 +12,7 @@ else
         <RadzenCard>
             <RadzenDataGrid Data="@_members" TItem="UserModel">
                 <Columns>
+                    <RadzenDataGridColumn Title="Key" Property="@nameof(UserModel.Key)" />
                     <RadzenDataGridColumn Title="EMail" Property="@nameof(UserModel.EMail)" />
                     <RadzenDataGridColumn Title="Last Seen" Property="@nameof(UserModel.LastSeen)">
                         <Template>
@@ -31,7 +32,13 @@ else
                 <Template Context="team">
                     <RadzenDataGrid Data="@team.Members" TItem="TMember">
                         <Columns>
+                            <RadzenDataGridColumn Title="Key" Property="@nameof(ITeamMember.Key)" />
                             <RadzenDataGridColumn Title="EMail" Property="@nameof(ITeamMember.EMail)" />
+                            <RadzenDataGridColumn Title="Last Seen" Property="@nameof(UserModel.LastSeen)">
+                                <Template>
+                                    <DateTimeView Date="@context.LastSeen" />
+                                </Template>
+                            </RadzenDataGridColumn>
                         </Columns>
                     </RadzenDataGrid>
                 </Template>
@@ -55,12 +62,13 @@ else
         _members = _teams
             .Where(x => x.Members != null)
             .SelectMany(x => x.Members)
-            .GroupBy(x => x.EMail)
+            .GroupBy(x => (K: x.Key, E: x.EMail))
             .Select(x => new UserModel
             {
-                EMail = x.First().EMail,
-                LastSeen = x.First().LastSeen,
-                Teams = _teams.Where(y => y.Members != null && y.Members.Any(z => z.EMail == x.First().EMail)).OrderBy(x => x.Name).ToArray<ITeam>()
+                Key = x.Key.K,
+                EMail = x.Key.E,
+                LastSeen = x.Min(x => x.LastSeen),
+                Teams = _teams.Where(y => y.Members != null && y.Members.Any(z => z.EMail == x.First().EMail)).OrderBy(y => y.Name).ToArray<ITeam>()
             })
             .ToArray();
 

@@ -2,7 +2,7 @@
 
 public abstract record TeamMemberBase : ITeamMember
 {
-    public string Key { get; set; }
+    public required string Key { get; set; }
     public required string EMail { get; init; }
-    public DateTime? LastSeen { get; init; }
+    public required DateTime? LastSeen { get; init; }
 }
