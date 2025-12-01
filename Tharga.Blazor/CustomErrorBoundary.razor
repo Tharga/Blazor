@@ -33,7 +33,8 @@ else
                 <p>We encountered an unexpected error.</p>
             } *@
         }
-        <p>This error has been logged with CorrelationId <i>@_correlationId</i>. <ClipboardCopy Content="@($"{_correlationId}")" /></p>
+        @* <p>This error has been logged with CorrelationId <i>@_correlationId</i>. <ClipboardCopy Content="@($"{_correlationId}")" /></p> *@
+        <p>This error has been logged with CorrelationId <i>@_correlationId</i>. <Tharga.Blazor.Features.Clipboard.CopyButton Content="@($"{_correlationId}")" /></p>
         <button class="btn btn-primary" @onclick="Recover">Try to recover</button>
     </div>
 }
