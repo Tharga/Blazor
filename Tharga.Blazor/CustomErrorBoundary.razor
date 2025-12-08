@@ -1,8 +1,6 @@
 ﻿@using Microsoft.Extensions.Logging
-@* @using Quilt4Net.Toolkit.Features.Measure *@
 @inherits ErrorBoundary
 @inject ILogger<CustomErrorBoundary> Logger
-@* @inject IWebHostEnvironment Environment *@
 
 @if (CurrentException is null)
 {
@@ -19,7 +17,7 @@ else
         }
         else
         {
-@*             @if (Environment.IsDevelopment())
+            @* @if (Environment.IsDevelopment())
             { *@
                 <div class="dev-error-details">
                     <strong>Exception Message:</strong> @CurrentException.Message
@@ -27,13 +25,12 @@ else
                     <strong>Stack Trace:</strong>
                     <pre>@CurrentException.StackTrace</pre>
                 </div>
-@*             }
+            @* }
             else
             {
                 <p>We encountered an unexpected error.</p>
             } *@
         }
-        @* <p>This error has been logged with CorrelationId <i>@_correlationId</i>. <ClipboardCopy Content="@($"{_correlationId}")" /></p> *@
         <p>This error has been logged with CorrelationId <i>@_correlationId</i>. <Tharga.Blazor.Features.Clipboard.CopyButton Content="@($"{_correlationId}")" /></p>
         <button class="btn btn-primary" @onclick="Recover">Try to recover</button>
     </div>

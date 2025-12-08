@@ -1,4 +1,8 @@
-﻿<StandardButton Icon="content_copy" Click="Copy" />
+﻿@using Microsoft.JSInterop
+@inject NotificationService NotificationService
+@inject IJSRuntime JS
+
+<StandardButton Icon="content_copy" Click="Copy" />
 
 @code {
     [Parameter]
@@ -6,7 +10,8 @@
 
     private async Task Copy()
     {
-
+        await JS.InvokeVoidAsync("copyToClipboard", Content);
+        NotificationService.Notify(new NotificationMessage { Summary = $"{Content} copied to clipboard." });
     }
 
 }
