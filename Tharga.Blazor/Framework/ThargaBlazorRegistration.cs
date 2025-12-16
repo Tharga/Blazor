@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Tharga.Blazor.Features.BreadCrumbs;
 using Tharga.Blazor.Features.Team;
+using Tharga.Team;
 
 namespace Tharga.Blazor.Framework;
 
@@ -19,6 +20,7 @@ public static class ThargaBlazorRegistration
 
         if (o._teamService != null)
         {
+            services.AddThargaTeam();
             services.AddScoped<ITeamStateService, TeamStateService>();
             services.AddScoped(typeof(ITeamService), o._teamService);
             services.AddTransient<IClaimsTransformation, ClaimsTransformation>();

@@ -1,6 +1,13 @@
 ﻿using System.Security.Claims;
 
-namespace Tharga.Blazor.Features.Team;
+namespace Tharga.Team;
+
+public interface ITeamService<T> : ITeamService
+    where T : ITeam
+{
+    Task<T> GetTeamAsync(string teamKey);
+    Task UpdateTeamAsync(T team);
+}
 
 public interface ITeamService
 {
@@ -12,11 +19,4 @@ public interface ITeamService
     Task DeleteTeamAsync(string teamKey);
     IAsyncEnumerable<string> GetRolesAsync(ITeam team);
     Task SetLastSeenAsync(ITeam team, ClaimsPrincipal claimsPrincipal = null);
-}
-
-public interface ITeamService<T> : ITeamService
-    where T : ITeam
-{
-    Task<T> GetTeamAsync(string teamKey);
-    Task UpdateTeamAsync(T team);
 }

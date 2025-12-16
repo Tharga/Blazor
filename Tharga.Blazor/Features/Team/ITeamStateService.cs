@@ -1,4 +1,6 @@
-﻿namespace Tharga.Blazor.Features.Team;
+﻿using Tharga.Team;
+
+namespace Tharga.Blazor.Features.Team;
 
 public interface ITeamStateService
 {

@@ -1,4 +1,4 @@
-﻿namespace Tharga.Blazor.Features.Team;
+﻿namespace Tharga.Team;
 
 public class SelectedTeamChangedEventArgs : EventArgs
 {
@@ -8,8 +8,4 @@ public class SelectedTeamChangedEventArgs : EventArgs
     }
 
     public ITeam SelectedTeam { get; }
-}
-
-public class TeamsListChangedEventArgs : EventArgs
-{
 }

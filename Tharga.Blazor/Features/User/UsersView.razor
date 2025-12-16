@@ -1,5 +1,5 @@
-﻿@using Tharga.Blazor.Features.Team
-@typeparam TMember where TMember : ITeamMember
+﻿@using Tharga.Team
+@typeparam TMember where TMember : Tharga.Team.ITeamMember
 @inject ITeamService TeamService
 
 @if (_teams == null)
@@ -19,11 +19,11 @@ else
                             <DateTimeView Date="@context.LastSeen" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Teams">
+                    @* <RadzenDataGridColumn Title="Teams">
                         <Template>
                             @string.Join(", ", context.Teams.Select(x => x.Name))
                         </Template>
-                    </RadzenDataGridColumn>
+                    </RadzenDataGridColumn> *@
                 </Columns>
             </RadzenDataGrid>
         </RadzenCard>

@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Tharga.Blazor.Features.Team;
+using Tharga.Team;
 using Tharga.Toolkit;
 
 namespace Tharga.Blazor.Framework;
