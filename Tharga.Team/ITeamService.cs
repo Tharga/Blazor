@@ -2,20 +2,22 @@
 
 namespace Tharga.Team;
 
-public interface ITeamService<T> : ITeamService
-    where T : ITeam
-{
-    Task<T> GetTeamAsync(string teamKey);
-    Task UpdateTeamAsync(T team);
-}
+//public interface ITeamService<T> : ITeamService
+//    where T : ITeam
+//{
+//    Task<T> GetTeamAsync(string teamKey);
+//    Task UpdateTeamAsync(T team);
+//}
 
 public interface ITeamService
 {
+    //TODO: Revisit -->
+
     event EventHandler<TeamsListChangedEventArgs> TeamsListChangedEvent;
 
     IAsyncEnumerable<ITeam<TMember>> GetAllTeamsAsync<TMember>(ClaimsPrincipal claimsPrincipal = null) where TMember : ITeamMember;
     IAsyncEnumerable<ITeam> GetTeamsAsync(ClaimsPrincipal claimsPrincipal = null);
-    Task<ITeam> CreateTeamAsync();
+    Task<ITeam> CreateTeamAsync(ClaimsPrincipal claimsPrincipal = null);
     Task DeleteTeamAsync(string teamKey);
     IAsyncEnumerable<string> GetRolesAsync(ITeam team);
     Task SetLastSeenAsync(ITeam team, ClaimsPrincipal claimsPrincipal = null);
