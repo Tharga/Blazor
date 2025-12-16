@@ -1,4 +1,5 @@
 ﻿using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Tharga.Blazor.Features.BreadCrumbs;
@@ -20,6 +21,7 @@ public static class ThargaBlazorRegistration
         {
             services.AddScoped<ITeamStateService, TeamStateService>();
             services.AddScoped(typeof(ITeamService), o._teamService);
+            services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
         }
 
         services.AddSingleton(Options.Create(o));
