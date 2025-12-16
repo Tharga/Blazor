@@ -1,0 +1,201 @@
+﻿@using System.Diagnostics
+@using Tharga.Toolkit
+@inject ITeamService TeamService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@typeparam TMember where TMember : ITeamMember
+
+@if (_teams == null)
+{
+    <Loading />
+}
+else
+{
+    <RadzenStack Gap="1rem">
+        @foreach (var team in _teams)
+        {
+            <ExpandableCard Text="@team.Name" Selected="true">
+@*                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+                    <RadzenButton icon="edit" Text="Rename" Click="@(async () => { await RenameTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" />
+                    <RadzenButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Owner))" />
+                    <RadzenButton icon="remove" Text="Leave" Click="@(async () => { await RemoveUserFromTeam(team, _currentUser.User.GetIdentity().Identity); })" Visible="@(!HasAccessLevel(team, AccessLevel.Owner))" />
+                </RadzenStack>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenDataGrid Data="@team.Members" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" TItem="TMember">
+                            <Columns>
+                                <RadzenDataGridColumn Title="Identity" Property="@nameof(ITeamMember.Key)" />
+                                <RadzenDataGridColumn Title="EMail" Property="@nameof(ITeamMember.EMail)">
+                                    <Template>
+                                        <RadzenGravatar Email="@context.EMail" Style="margin-right: 6px;" /> @context.EMail
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="TeamMemberModel" Title="Name" Property="@nameof(ITeamMember.FullName)" />
+                                <RadzenDataGridColumn Title="Access Level" Property="@nameof(ITeamMember.AccessLevel)">
+                                    <Template>
+                                        @if (_currentUser.User.GetIdentity().Identity == context.Key || context.AccessLevel == AccessLevel.Owner) //Cannot change self or owner.
+                                        {
+                                            <RadzenText>@context.AccessLevel</RadzenText>
+                                        }
+                                        else if (HasAccessLevel(team, AccessLevel.Administrator)) //Administrators or higher can change role.
+                                        {
+                                            var roles = Enum.GetValues<AccessLevel>().Where(x => x != AccessLevel.Owner);
+                                            <RadzenDropDown TValue="AccessLevel" Value="@context.AccessLevel" ValueChanged="@(x => ChangeRole(team, context, x))" Data="@roles" />
+                                        }
+                                        else
+                                        {
+                                            <RadzenText>@context.AccessLevel</RadzenText>
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn Title="Status" Property="@nameof(ITeamMember.State)" />
+                                <RadzenDataGridColumn Title="Last Seen" Property="@nameof(ITeamMember.LastSeen)">
+                                    <Template>
+                                        <DateTimeView Date="@context.LastSeen" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn>
+                                    <Template>
+                                        @if (HasAccessLevel(team, AccessLevel.Administrator) && _currentUser.User.GetIdentity().Identity != context.Key && context.AccessLevel != AccessLevel.Owner)
+                                        {
+                                            <StandardButton Text="Remove" Icon="remove" Click="@(() => RemoveUserFromTeam(team, context.Key))" />
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+                    <RadzenButton Icon="add" Text="Add User" Click="@(() => AddUser(team))" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" />
+                </RadzenStack> *@
+            </ExpandableCard>
+        }
+
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenButton Icon="add" Text="Create new Team" Click="@(() => CreateTeam())" />
+        </RadzenStack>
+
+    </RadzenStack>
+}
+
+@code {
+    private ITeam[] _teams;
+    // private ITeam<TMember>[] _teams;
+    private AuthenticationState _currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        // var currentUserKey = _currentUser.User.GetIdentity().Identity;
+
+        // _teams = await TeamService.GetAllTeamsAsync<TMember>().ToArrayAsync();
+
+        await ReloadTeams();
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task CreateTeam()
+    {
+        await TeamService.CreateTeamAsync();
+        await ReloadTeams();
+    }
+
+    private async Task RenameTeam(ITeam team)
+    {
+        // var result = await DialogService.OpenAsync<TeamDialog>(
+        //     $"Rename {team.Name}",
+        //     new Dictionary<string, object> { { "TeamKey", team.Key }, { "Name", team.Name } },
+        //     new DialogOptions { Resizable = true, Draggable = true });
+
+        // if (result == true) await ReloadTeams();
+        Debugger.Break();
+        throw new NotImplementedException();
+    }
+
+    private async Task AddUser(ITeam<TMember> team)
+    {
+        // var result = await DialogService.OpenAsync<AddUserDialog>(
+        //     $"Add User",
+        //     new Dictionary<string, object> { { "TeamKey", team.Key } },
+        //     new DialogOptions { Resizable = true, Draggable = true });
+
+        // if (result == true) await ReloadTeams();
+        Debugger.Break();
+        throw new NotImplementedException();
+    }
+
+    private async Task RemoveUserFromTeam(ITeam<TMember> team, string identity)
+    {
+        // var member = team.Members.Single(x => x.Key == identity);
+        // var response = await DialogService.Confirm($"User '{member.EMail}' will be removed from the team '{team.Name}'.");
+        // if (response != true) return;
+
+        // var t = await TeamService.GetTeamAsync(team.Key);
+        // t = t with { Members = t.Members.Where(x => x.Key != identity).ToArray() };
+        // await TeamService.UpdateTeamAsync(t);
+
+        // //NOTE: Wait for delete, then force new team selection and then reload the list.
+        // await Task.Delay(1000);
+        // await TeamStateService.GetSelectedTeamAsync();
+        // await ReloadTeams();
+        Debugger.Break();
+        throw new NotImplementedException();
+    }
+
+    private async Task DeleteTeam(ITeam<TMember> team)
+    {
+        // var response = await DialogService.Confirm($"Team '{team.Name}' will be deleted.");
+        // if (response != true) return;
+
+        // await TeamService.DeleteTeamAsync(team.Key);
+
+        // //NOTE: Wait for delete, then force new team selection and then reload the list.
+        // await Task.Delay(1000);
+        // await TeamStateService.GetSelectedTeamAsync();
+        // await ReloadTeams();
+        Debugger.Break();
+        throw new NotImplementedException();
+    }
+
+    // // private static TeamWithMemberModel BuildTeamWithMemberModel(TeamEntity teamEntity, string userKey)
+    // // {
+    // //     var member = teamEntity.Members.FirstOrDefault(y => y.Key == userKey);
+
+    // //     return new TeamWithMemberModel
+    // //     {
+    // //         Key = teamEntity.Key,
+    // //         Name = teamEntity.Name,
+    // //         Icon = teamEntity.Icon,
+    // //         Role = member?.Role ?? TeamMemberRole.User,
+    // //         Members = teamEntity.Members
+    // //     };
+    // // }
+
+    // private async Task ChangeRole(ITeam<TMember> team, TMember context, AccessLevel teamMemberRole)
+    // {
+    //     // var t = await TeamService.GetTeamAsync(team.Key);
+    //     // var member = t.Members.Single(x => x.Key == context.Key);
+    //     // member = member with { Role = teamMemberRole };
+    //     // t = t with { Members = t.Members.Where(x => x.Key != member.Key).Concat([member]).ToArray() };
+    //     // await TeamService.UpdateTeamAsync(t);
+
+    //     // await ReloadTeams();
+    //     throw new NotImplementedException();
+    // }
+
+    // private bool HasAccessLevel(ITeam<TMember> team, AccessLevel role)
+    // {
+    //      return _currentUser.HasAccessLevel(team, role);
+    // }
+
+    private async Task ReloadTeams()
+    {
+        // var currentUserKey = _currentUser.User.GetIdentity().Identity;
+
+        //_teams = await TeamService.GetAllTeamsAsync<TMember>().ToArrayAsync();
+        _teams = await TeamService.GetTeamsAsync().ToArrayAsync();
+        // _teams = teams.Select(x => (TeamEntity)x).Select(x => Tharga.PlutusWave.Features.Team.TeamService.BuildTeamWithMemberModel(x, currentUserKey)).ToArray();
+        StateHasChanged();
+    }
+}
