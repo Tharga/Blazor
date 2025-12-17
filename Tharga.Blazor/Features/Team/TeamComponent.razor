@@ -19,7 +19,7 @@ else
             <ExpandableCard Text="@team.Name" Selected="true">
                  <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
                     <RadzenButton icon="edit" Text="Rename" Click="@(async () => { await RenameTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" />
-                    <RadzenButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Owner))" />
+                    <ActionButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Owner))" />
                     <RadzenButton icon="remove" Text="Leave" Click="@(async () => { await RemoveUserFromTeam(team, _currentUser.User.GetIdentity().Identity); })" Visible="@(!HasAccessLevel(team, AccessLevel.Owner))" />
                 </RadzenStack>
                 <RadzenRow>
@@ -68,9 +68,9 @@ else
                         </RadzenDataGrid>
                     </RadzenColumn>
                 </RadzenRow>
-                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+                @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
                     <RadzenButton Icon="add" Text="Add User" Click="@(() => AddUser(team))" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" />
-                </RadzenStack>
+                </RadzenStack> *@
             </ExpandableCard>
         }
 
@@ -105,14 +105,12 @@ else
 
     private async Task RenameTeam(ITeam team)
     {
-        // var result = await DialogService.OpenAsync<TeamDialog>(
-        //     $"Rename {team.Name}",
-        //     new Dictionary<string, object> { { "TeamKey", team.Key }, { "Name", team.Name } },
-        //     new DialogOptions { Resizable = true, Draggable = true });
+        var result = await DialogService.OpenAsync<TeamDialog>(
+            $"Rename {team.Name}",
+            new Dictionary<string, object> { { "TeamKey", team.Key }, { "Name", team.Name } },
+            new DialogOptions { Resizable = true, Draggable = true });
 
-        // if (result == true) await ReloadTeams();
-        Debugger.Break();
-        throw new NotImplementedException();
+        if (result == true) await ReloadTeams();
     }
 
     private async Task AddUser(ITeam<TMember> team)

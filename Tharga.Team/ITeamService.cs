@@ -11,14 +11,16 @@ namespace Tharga.Team;
 
 public interface ITeamService
 {
-    //TODO: Revisit -->
-
     event EventHandler<TeamsListChangedEventArgs> TeamsListChangedEvent;
+
+    Task RenameTeamAsync(string teamKey, string name);
+    Task DeleteTeamAsync(string teamKey);
+
+    //TODO: Revisit -->
 
     IAsyncEnumerable<ITeam<TMember>> GetAllTeamsAsync<TMember>(ClaimsPrincipal claimsPrincipal = null) where TMember : ITeamMember;
     IAsyncEnumerable<ITeam> GetTeamsAsync(ClaimsPrincipal claimsPrincipal = null);
     Task<ITeam> CreateTeamAsync(ClaimsPrincipal claimsPrincipal = null);
-    Task DeleteTeamAsync(string teamKey);
     IAsyncEnumerable<string> GetRolesAsync(ITeam team);
     Task SetLastSeenAsync(ITeam team, ClaimsPrincipal claimsPrincipal = null);
 }

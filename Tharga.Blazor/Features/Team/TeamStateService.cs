@@ -6,6 +6,11 @@ using Tharga.Team;
 
 namespace Tharga.Blazor.Features.Team;
 
+public record TeamDialogModel
+{
+    public string Name { get; set; }
+}
+
 internal class TeamStateService : ITeamStateService
 {
     private readonly ITeamService _teamService;
