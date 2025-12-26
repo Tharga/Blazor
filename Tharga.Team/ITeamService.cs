@@ -2,13 +2,14 @@
 
 namespace Tharga.Team;
 
-//public interface ITeamService<T> : ITeamService
-//    where T : ITeam
-//{
-//    Task<T> GetTeamAsync(string teamKey);
-//    Task UpdateTeamAsync(T team);
-//}
+public interface ITeamService<T> : ITeamService
+    where T : ITeam
+{
+    Task<T> GetTeamAsync(string teamKey);
+    Task UpdateTeamAsync(T team);
+}
 
+//
 public interface ITeamService
 {
     event EventHandler<TeamsListChangedEventArgs> TeamsListChangedEvent;

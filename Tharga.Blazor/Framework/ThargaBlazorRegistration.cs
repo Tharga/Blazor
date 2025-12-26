@@ -22,7 +22,11 @@ public static class ThargaBlazorRegistration
         {
             services.AddThargaTeam();
             services.AddScoped<ITeamStateService, TeamStateService>();
-            services.AddScoped(typeof(ITeamService), o._teamService);
+
+            services.AddScoped(o._teamService);
+            services.AddScoped(typeof(ITeamService), sp => sp.GetRequiredService(o._teamService));
+            //TODO: builder.Services.AddScoped<ITeamService<TeamEntity>>(sp => sp.GetRequiredService<TeamService>());
+
             services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
         }
 
