@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Tharga.Toolkit;
 
 namespace Tharga.Blazor.Features.BreadCrumbs;
 
@@ -26,10 +27,14 @@ public class BreadCrumbService
 
         _segments = parts
             .Where(x => !string.IsNullOrEmpty(x))
-            .Select((x, i) =>
+            .Select((text, i) =>
             {
                 var path = string.Join("/", parts.Take(i + 1));
-                return new BreadCrumb { Text = x, Path = path };
+
+                var pos = text.IndexOf("?", StringComparison.Ordinal);
+                if (pos > 0) text = text.Substring(0, pos);
+
+                return new BreadCrumb { Text = text, Path = path };
             })
             .ToArray();
 
