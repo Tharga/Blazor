@@ -192,7 +192,7 @@ else
     {
         // var currentUserKey = _currentUser.User.GetIdentity().Identity;
 
-        _teams = await TeamService.GetAllTeamsAsync<TMember>().ToArrayAsync();
+        _teams = await TeamService.GetTeamsAsync<TMember>().ToArrayAsync();
         // _teams = await TeamService.GetTeamsAsync().ToArrayAsync();
         // _teams = teams.Select(x => (TeamEntity)x).Select(x => Tharga.PlutusWave.Features.Team.TeamService.BuildTeamWithMemberModel(x, currentUserKey)).ToArray();
         StateHasChanged();
