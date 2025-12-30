@@ -26,7 +26,7 @@ else
                     <RadzenColumn>
                         <RadzenDataGrid Data="@team.Members" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" TItem="TMember">
                             <Columns>
-                                <RadzenDataGridColumn Title="Identity" Property="@nameof(ITeamMember.Key)" />
+                                <RadzenDataGridColumn Title="Key" Property="@nameof(ITeamMember.Key)" />
                                 @* <RadzenDataGridColumn Title="EMail" Property="@nameof(ITeamMember.EMail)">
                                     <Template>
                                         <RadzenGravatar Email="@context.EMail" Style="margin-right: 6px;" /> @context.EMail

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
+using Tharga.Blazor.Framework;
 using Tharga.Team;
 
 namespace Tharga.Blazor.Features.Team;
@@ -48,7 +49,7 @@ internal class TeamStateService : ITeamStateService
 
             if (_selectedTeam == null || teams.All(x => x.Key != _selectedTeam.Key) || teams.FirstOrDefault(x => x.Key == _selectedTeam.Key)?.Name != _selectedTeam.Name)
             {
-                var t = authState.User.Claims.FirstOrDefault(x => x.Type == "team_id");
+                var t = authState.User.Claims.FirstOrDefault(x => x.Type == Constants.TeakKeyCookie);
                 if (t != null)
                 {
                     var team = teams.FirstOrDefault(x => x.Key == t.Value) ?? teams.FirstOrDefault();
