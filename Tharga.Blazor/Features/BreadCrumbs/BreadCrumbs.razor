@@ -3,41 +3,46 @@
 @inject BreadCrumbService BreadCrumbService
 @inject IOptions<ThargaBlazorOptions> Options
 
-@if (ShowRoot)
-{
-    @if (BreadCrumbService.BreadCrumbItems.Any())
+<span style="@Style">
+    @if (ShowRoot)
     {
-        <RadzenBreadCrumbItem Text="@MainTitle" Path="/" />
+        @if (BreadCrumbService.BreadCrumbItems.Any())
+        {
+            <RadzenBreadCrumbItem Text="@MainTitle" Path="/" />
+        }
+        else
+        {
+            <RadzenBreadCrumbItem Text="@MainTitle" />
+        }
     }
-    else
+    @foreach (var item in BreadCrumbService.BreadCrumbItems)
     {
-        <RadzenBreadCrumbItem Text="@MainTitle" />
+        @if (!string.IsNullOrEmpty(item.Path))
+        {
+            <RadzenBreadCrumbItem Text="@item.Text" Path="@item.Path" />
+        }
+        else
+        {
+            <RadzenBreadCrumbItem Text="@item.Text" />
+        }
     }
-}
-
-@foreach (var item in BreadCrumbService.BreadCrumbItems)
-{
-    @if (!string.IsNullOrEmpty(item.Path))
-    {
-        <RadzenBreadCrumbItem Text="@item.Text" Path="@item.Path" />
-    }
-    else
-    {
-        <RadzenBreadCrumbItem Text="@item.Text" />
-    }
-}
+</span>
 
 @code {
 
     [Parameter]
     public bool ShowRoot { get; set; } = false;
 
+    [Parameter]
+    public string Style { get; set; }
+
     private string MainTitle { get; set; } = "Untitled";
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        MainTitle = Options?.Value.Title;
+        MainTitle = Options?.Value.Title ?? "Home";
         BreadCrumbService.ChangeEvent += async (_, _) => { await InvokeAsync(StateHasChanged); };
-        return base.OnInitializedAsync();
+        await InvokeAsync(StateHasChanged);
+        await base.OnInitializedAsync();
     }
 }

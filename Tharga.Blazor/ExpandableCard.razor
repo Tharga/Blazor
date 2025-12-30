@@ -10,8 +10,8 @@
             <RadzenStack Orientation="Orientation.Horizontal" Visible="@(TopMenu != null)" Style="margin: calc(-1 * var(--rz-card-padding)) 0;">
                 @TopMenu
             </RadzenStack>
-            <RadzenIcon Icon="keyboard_arrow_down" Visible="@IsSelected" />
-            <RadzenIcon Icon="keyboard_arrow_up" Visible="@(!IsSelected)" />
+            <RadzenIcon Icon="keyboard_arrow_up" Visible="@IsSelected" />
+            <RadzenIcon Icon="keyboard_arrow_down" Visible="@(!IsSelected)" />
         </RadzenStack>
     </RadzenStack>
     <RadzenStack Visible="@IsSelected" Style="margin-top: calc(2 * var(--rz-card-padding))">

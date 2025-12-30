@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		setVersionEnvironmentVariable.ps1 = setVersionEnvironmentVariable.ps1
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tharga.Team", "Tharga.Team\Tharga.Team.csproj", "{2C7E5784-9A05-44EB-B6F4-862DFA9DF481}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +24,10 @@ Global
 		{8F8095F4-B615-4B1C-93C5-AF2AEB42A00C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F8095F4-B615-4B1C-93C5-AF2AEB42A00C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F8095F4-B615-4B1C-93C5-AF2AEB42A00C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C7E5784-9A05-44EB-B6F4-862DFA9DF481}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C7E5784-9A05-44EB-B6F4-862DFA9DF481}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C7E5784-9A05-44EB-B6F4-862DFA9DF481}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C7E5784-9A05-44EB-B6F4-862DFA9DF481}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
