@@ -1,11 +1,16 @@
-﻿@using System.Diagnostics
+﻿@using System.Text.Json
+@using Microsoft.JSInterop
 @using Tharga.Team
 @using Tharga.Toolkit
-@typeparam TMember where TMember : Tharga.Team.ITeamMember
+@typeparam TMember where TMember : class, Tharga.Team.ITeamMember
 @inject ITeamService TeamService
 @inject ITeamStateService TeamStateService
+@inject IUserService UserService
+@inject IJSRuntime Js
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject DialogService DialogService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
 
 @if (_teams == null)
 {
@@ -14,68 +19,87 @@
 else
 {
     <RadzenStack Gap="1rem">
-        @foreach (var team in _teams)
+        <TeamInviteView TMember="TMember" />
+        @if (_selectedTeam != null)
         {
-            <ExpandableCard Text="@team.Name" Selected="true">
-                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
-                    <RadzenButton icon="edit" Text="Rename" Click="@(async () => { await RenameTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" />
-                    <ActionButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Owner))" />
-                    <RadzenButton icon="remove" Text="Leave" Click="@(async () => { await RemoveUserFromTeam(team, _currentUser.User.GetIdentity().Identity); })" Visible="@(!HasAccessLevel(team, AccessLevel.Owner))" />
-                </RadzenStack>
-                <RadzenRow>
-                    <RadzenColumn>
-                        <RadzenDataGrid Data="@team.Members" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" TItem="TMember">
-                            <Columns>
-                                <RadzenDataGridColumn Title="Key" Property="@nameof(ITeamMember.Key)" />
-                                @* <RadzenDataGridColumn Title="EMail" Property="@nameof(ITeamMember.EMail)">
-                                    <Template>
-                                        <RadzenGravatar Email="@context.EMail" Style="margin-right: 6px;" /> @context.EMail
-                                    </Template>
-                                </RadzenDataGridColumn> *@
-                                <RadzenDataGridColumn Title="Name" Property="@nameof(ITeamMember.Name)" />
-                                <RadzenDataGridColumn Title="Access Level" Property="@nameof(ITeamMember.AccessLevel)">
-                                    <Template>
-                                        @if (_currentUser.User.GetIdentity().Identity == context.Key || context.AccessLevel == AccessLevel.Owner) //Cannot change self or owner.
-                                        {
-                                            <RadzenText>@context.AccessLevel</RadzenText>
-                                        }
-                                        else if (HasAccessLevel(team, AccessLevel.Administrator)) //Administrators or higher can change role.
-                                        {
-                                            var roles = Enum.GetValues<AccessLevel>().Where(x => x != AccessLevel.Owner);
-                                            <RadzenDropDown TValue="AccessLevel" Value="@context.AccessLevel" ValueChanged="@(x => ChangeRole(team, context, x))" Data="@roles" />
-                                        }
-                                        else
-                                        {
-                                            <RadzenText>@context.AccessLevel</RadzenText>
-                                        }
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn Title="Status" Property="@nameof(ITeamMember.State)" />
-                                <RadzenDataGridColumn Title="Last Seen" Property="@nameof(ITeamMember.LastSeen)">
-                                    <Template>
-                                        <DateTimeView Date="@context.LastSeen" />
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn>
-                                    <Template>
-                                        @if (HasAccessLevel(team, AccessLevel.Administrator) && _currentUser.User.GetIdentity().Identity != context.Key && context.AccessLevel != AccessLevel.Owner)
-                                        {
-                                            <StandardButton Text="Remove" Icon="remove" Click="@(() => RemoveUserFromTeam(team, context.Key))" />
-                                        }
-                                    </Template>
-                                </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
-                    </RadzenColumn>
-                </RadzenRow>
-                @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
-                    <RadzenButton Icon="add" Text="Add User" Click="@(() => AddUser(team))" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" />
-                </RadzenStack> *@
-            </ExpandableCard>
+            @foreach (var team in _teams)
+            {
+                <ExpandableCard Text="@team.Name" Selected="@(_selectedTeam.Key == team.Key)">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+                        <RadzenButton icon="edit" Text="Rename" Click="@(async () => { await RenameTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))"/>
+                        <ActionButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Owner))"/>
+                        <RadzenButton icon="remove" Text="Leave" Click="@(async () => { await RemoveUserFromTeam(team, _currentAuthenticationState.User.GetIdentity().Identity); })" Visible="@(!HasAccessLevel(team, AccessLevel.Owner))"/>
+                    </RadzenStack>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            @* <RadzenDataGrid Data="@team.Members" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))" TItem="TMember"> *@
+                            <RadzenDataGrid Data="@team.Members" TItem="TMember">
+                                <Columns>
+                                    @* <RadzenDataGridColumn Title="Key" Property="@nameof(ITeamMember.Key)" /> *@
+                                    <RadzenDataGridColumn Title="EMail" SortOrder="SortOrder.Ascending">
+                                        <Template>
+                                            @{
+                                                var user = _users.FirstOrDefault(x => x.Key == context.Key);
+                                                <RadzenGravatar Email="@(context.Invitation?.EMail ?? user?.EMail)" Style="margin-right: 6px;"/>
+                                                @(context.Invitation?.EMail ?? user?.EMail)
+                                            }
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Name" Property="@nameof(ITeamMember.Name)"/>
+                                    <RadzenDataGridColumn Title="Access Level" Property="@nameof(ITeamMember.AccessLevel)">
+                                        <Template>
+                                            @if (_currentAuthenticationState.User.GetIdentity().Identity == context.Key || context.AccessLevel == AccessLevel.Owner) //Cannot change self or owner.
+                                            {
+                                                <RadzenText>@context.AccessLevel</RadzenText>
+                                            }
+                                            else if (HasAccessLevel(team, AccessLevel.Administrator)) //Administrators or higher can change role.
+                                            {
+                                                var accessLevels = Enum.GetValues<AccessLevel>().Where(x => x != AccessLevel.Owner);
+                                                <RadzenDropDown TValue="AccessLevel" Value="@context.AccessLevel" ValueChanged="@(x => ChangeRole(team, context.Key, x))" Data="@accessLevels"/>
+                                            }
+                                            else
+                                            {
+                                                <RadzenText>@context.AccessLevel</RadzenText>
+                                            }
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Status" Property="@nameof(ITeamMember.State)"/>
+                                    <RadzenDataGridColumn Title="Last Seen" Property="@nameof(ITeamMember.LastSeen)">
+                                        <Template>
+                                            <DateTimeView Date="@context.LastSeen"/>
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn>
+                                        <Template>
+                                            <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
+                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && context.Invitation != null)
+                                                {
+                                                    <span title="Copy invitation link">
+                                                        <StandardButton Icon="link" Click="@(() => CopyInvitationLink(team, context.Key))"/>
+                                                    </span>
+                                                }
+                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && _currentAuthenticationState.User.GetIdentity().Identity != context.Key && context.AccessLevel != AccessLevel.Owner)
+                                                {
+                                                    <span title="Remove member">
+                                                        <StandardButton Icon="remove" Click="@(() => RemoveUserFromTeam(team, context.Key))"/>
+                                                    </span>
+                                                }
+                                            </RadzenStack>
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+                        <RadzenButton Icon="add" Text="Invite User" Click="@(() => AddUser(team))" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))"/>
+                    </RadzenStack>
+                </ExpandableCard>
+            }
         }
-
+        <RadzenText Visible="@(!_teams.Any())">You are not member of a team. Create your own team and start inviting members.</RadzenText>
         <RadzenStack Orientation="Orientation.Horizontal">
-            <RadzenButton Icon="add" Text="Create new Team" Click="@(() => CreateTeam())" />
+            <RadzenButton Icon="add" Text="Create new Team" Click="@(() => CreateTeam())"/>
         </RadzenStack>
 
     </RadzenStack>
@@ -83,14 +107,16 @@ else
 
 @code {
     private ITeam<TMember>[] _teams;
-    private AuthenticationState _currentUser;
+    private AuthenticationState _currentAuthenticationState;
+    private IUser[] _users;
+    private ITeam _selectedTeam;
+    private IUser _user;
 
     protected override async Task OnInitializedAsync()
     {
-        _currentUser = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        // var currentUserKey = _currentUser.User.GetIdentity().Identity;
-
-        // _teams = await TeamService.GetAllTeamsAsync<TMember>().ToArrayAsync();
+        _users = await UserService.GetAllAsync().ToArrayAsync();
+        _currentAuthenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _user = await UserService.GetAsync(_currentAuthenticationState.User);
 
         await ReloadTeams();
 
@@ -115,32 +141,33 @@ else
 
     private async Task AddUser(ITeam<TMember> team)
     {
-        // var result = await DialogService.OpenAsync<AddUserDialog>(
-        //     $"Add User",
-        //     new Dictionary<string, object> { { "TeamKey", team.Key } },
-        //     new DialogOptions { Resizable = true, Draggable = true });
+        var result = await DialogService.OpenAsync<InviteUserDialog>(
+            "Invite User",
+            new Dictionary<string, object> { { "TeamKey", team.Key } },
+            new DialogOptions { Resizable = true, Draggable = true });
 
-        // if (result == true) await ReloadTeams();
-        Debugger.Break();
-        throw new NotImplementedException();
+        if (result == true) await ReloadTeams();
     }
 
-    private async Task RemoveUserFromTeam(ITeam<TMember> team, string identity)
+    private async Task RemoveUserFromTeam(ITeam<TMember> team, string userKey)
     {
-        // var member = team.Members.Single(x => x.Key == identity);
-        // var response = await DialogService.Confirm($"User '{member.EMail}' will be removed from the team '{team.Name}'.");
-        // if (response != true) return;
+        var user = _users.FirstOrDefault(x => x.Key == userKey || x.Identity == userKey);
+        var member = team.Members.Single(x => x.Key == (user?.Key ?? userKey));
+        var email = member.Invitation?.EMail ?? user?.EMail;
+        var response = await DialogService.Confirm($"User '{email}' will be removed from the team '{team.Name}'.");
+        if (response != true) return;
 
-        // var t = await TeamService.GetTeamAsync(team.Key);
-        // t = t with { Members = t.Members.Where(x => x.Key != identity).ToArray() };
-        // await TeamService.UpdateTeamAsync(t);
+        await TeamService.RemoveMemberAsync(team.Key, member.Key);
+        await ReloadTeams();
+    }
 
-        // //NOTE: Wait for delete, then force new team selection and then reload the list.
-        // await Task.Delay(1000);
-        // await TeamStateService.GetSelectedTeamAsync();
-        // await ReloadTeams();
-        Debugger.Break();
-        throw new NotImplementedException();
+    private async Task ChangeRole(ITeam<TMember> team, string userKey, AccessLevel accessLevel)
+    {
+        var user = _users.FirstOrDefault(x => x.Key == userKey || x.Identity == userKey);
+        var member = team.Members.Single(x => x.Key == (user?.Key ?? userKey));
+
+        await TeamService.SetMemberRoleAsync(team.Key, member.Key, accessLevel);
+        await ReloadTeams();
     }
 
     private async Task DeleteTeam(ITeam<TMember> team)
@@ -151,50 +178,44 @@ else
         await TeamService.DeleteTeamAsync(team.Key);
 
         //NOTE: Wait for delete, then force new team selection and then reload the list.
-        await Task.Delay(1000);
-        await TeamStateService.GetSelectedTeamAsync();
+        // await Task.Delay(1000);
         await ReloadTeams();
     }
 
-    // // private static TeamWithMemberModel BuildTeamWithMemberModel(TeamEntity teamEntity, string userKey)
-    // // {
-    // //     var member = teamEntity.Members.FirstOrDefault(y => y.Key == userKey);
-
-    // //     return new TeamWithMemberModel
-    // //     {
-    // //         Key = teamEntity.Key,
-    // //         Name = teamEntity.Name,
-    // //         Icon = teamEntity.Icon,
-    // //         Role = member?.Role ?? TeamMemberRole.User,
-    // //         Members = teamEntity.Members
-    // //     };
-    // // }
-
-    private async Task ChangeRole(ITeam<TMember> team, TMember context, AccessLevel teamMemberRole)
+    private bool HasAccessLevel(ITeam<TMember> team, AccessLevel accessLevel)
     {
-        // var t = await TeamService.GetTeamAsync(team.Key);
-        // var member = t.Members.Single(x => x.Key == context.Key);
-        // member = member with { Role = teamMemberRole };
-        // t = t with { Members = t.Members.Where(x => x.Key != member.Key).Concat([member]).ToArray() };
-        // await TeamService.UpdateTeamAsync(t);
-
-        // await ReloadTeams();
-        throw new NotImplementedException();
-    }
-
-    private bool HasAccessLevel(ITeam<TMember> team, AccessLevel role)
-    {
-        // return _currentUser.HasAccessLevel(team, role);
-        return true;
+        var member = team.Members.Single(x => x.Key == _user.Key);
+        return member.AccessLevel <= accessLevel;
     }
 
     private async Task ReloadTeams()
     {
-        // var currentUserKey = _currentUser.User.GetIdentity().Identity;
-
+        _teams = null;
+        _selectedTeam = await TeamStateService.GetSelectedTeamAsync();
         _teams = await TeamService.GetTeamsAsync<TMember>().ToArrayAsync();
-        // _teams = await TeamService.GetTeamsAsync().ToArrayAsync();
-        // _teams = teams.Select(x => (TeamEntity)x).Select(x => Tharga.PlutusWave.Features.Team.TeamService.BuildTeamWithMemberModel(x, currentUserKey)).ToArray();
         StateHasChanged();
     }
+
+    private async Task CopyInvitationLink(ITeam<TMember> team, string userKey)
+    {
+        var member = team.Members.Single(x => x.Key == userKey);
+        var baseUri = NavigationManager.BaseUri;
+
+        var inviteModel = new InviteModel
+        {
+            TeamKey = team.Key,
+            Code = member.Invitation.InviteKey,
+        };
+        var inviteModelJson = JsonSerializer.Serialize(inviteModel);
+        var inviteCode = inviteModelJson.ToBase64();
+
+        var link = $"{baseUri}team?{Constants.TeamInviteCode}={inviteCode}";
+
+        await Js.InvokeVoidAsync("clipboard.copyText", link);
+        NotificationService.Notify(new NotificationMessage
+        {
+            Summary = $"The invitation link '{link}' has been copied to the clipboard."
+        });
+    }
+
 }

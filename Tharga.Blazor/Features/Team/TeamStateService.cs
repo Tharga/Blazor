@@ -7,6 +7,34 @@ using Tharga.Team;
 
 namespace Tharga.Blazor.Features.Team;
 
+//TODO: Move to Tharga Toolkit.
+static class UriExtensions
+{
+    public static Uri RemoveQuery(this Uri uri)
+    {
+        var builder = new UriBuilder(uri)
+        {
+            Query = string.Empty
+        };
+
+        return builder.Uri;
+    }
+
+    public static IEnumerable<string> GetQueryValue(this Uri uri, string name)
+    {
+        var query = uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var part in query)
+        {
+            var kvp = part.Split('=', 2);
+
+            if (kvp.Length == 2 && kvp[0] == name)
+            {
+                yield return Uri.UnescapeDataString(kvp[1]);
+            }
+        }
+    }
+}
+
 public record TeamDialogModel
 {
     public string Name { get; set; }
@@ -49,7 +77,7 @@ internal class TeamStateService : ITeamStateService
 
             if (_selectedTeam == null || teams.All(x => x.Key != _selectedTeam.Key) || teams.FirstOrDefault(x => x.Key == _selectedTeam.Key)?.Name != _selectedTeam.Name)
             {
-                var t = authState.User.Claims.FirstOrDefault(x => x.Type == Constants.TeakKeyCookie);
+                var t = authState.User.Claims.FirstOrDefault(x => x.Type == Constants.TeamKeyCookie);
                 if (t != null)
                 {
                     var team = teams.FirstOrDefault(x => x.Key == t.Value) ?? teams.FirstOrDefault();
@@ -57,8 +85,9 @@ internal class TeamStateService : ITeamStateService
                 }
                 else if (!teams.Any())
                 {
-                    var team = await _teamService.CreateTeamAsync();
-                    await AssignTeamAsync(team, true);
+                    //TODO: Have creating a team as an option parameter, or direct to the team page to create one.
+                    //var team = await _teamService.CreateTeamAsync();
+                    //await AssignTeamAsync(team, true);
                 }
                 else if (teams.Length == 1)
                 {
@@ -103,12 +132,12 @@ internal class TeamStateService : ITeamStateService
     {
         await _teamService.SetLastSeenAsync(selectedTeam);
 
-        if (_selectedTeam.Key == selectedTeam.Key) return;
+        if (_selectedTeam?.Key == selectedTeam.Key) return;
 
         _selectedTeam = selectedTeam;
         await _localStorageService.SetItemAsStringAsync("SelectedTeam", selectedTeam.Key);
 
-        await _jSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'selected_team_id={_selectedTeam.Key}; path=/'");
+        await _jSRuntime.InvokeVoidAsync("eval", $"document.cookie = '{Constants.SelectedTeamKeyCookie}={_selectedTeam?.Key}; path=/'");
         _navigationManager.Refresh(true);
     }
 }

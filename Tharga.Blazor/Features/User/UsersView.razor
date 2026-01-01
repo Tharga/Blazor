@@ -1,6 +1,10 @@
-﻿@using Tharga.Team
+﻿@using Microsoft.AspNetCore.Authorization
+@using Tharga.Team
 @typeparam TMember where TMember : Tharga.Team.ITeamMember
+@attribute [Authorize(Roles = "Developer")]
 @inject ITeamService TeamService
+@inject IUserService UserService
+
 
 @if (_teams == null)
 {
@@ -10,43 +14,41 @@ else
 {
     <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
         <RadzenCard>
-            <RadzenDataGrid Data="@_members" TItem="UserModel">
+            <RadzenText>Users</RadzenText>
+            <RadzenDataGrid Data="@_users" TItem="IUser">
                 <Columns>
-                    <RadzenDataGridColumn Title="Key" Property="@nameof(UserModel.Key)" />
-                    <RadzenDataGridColumn Title="EMail" Property="@nameof(UserModel.EMail)" />
-                    <RadzenDataGridColumn Title="Last Seen" Property="@nameof(UserModel.LastSeen)">
-                        <Template>
-                            <DateTimeView Date="@context.LastSeen" />
-                        </Template>
-                    </RadzenDataGridColumn>
-                    @* <RadzenDataGridColumn Title="Teams">
-                        <Template>
-                            @string.Join(", ", context.Teams.Select(x => x.Name))
-                        </Template>
-                    </RadzenDataGridColumn> *@
+                    <RadzenDataGridColumn Title="Key" Property="@nameof(IUser.Key)"/>
+                    <RadzenDataGridColumn Title="Identity" Property="@nameof(IUser.Identity)"/>
+                    <RadzenDataGridColumn Title="EMail" Property="@nameof(IUser.EMail)"/>
                 </Columns>
             </RadzenDataGrid>
         </RadzenCard>
-        <RadzenCard>
-            @* <RadzenDataGrid Data="@_teams" TItem="ITeam<TMember>"> *@
-            <RadzenDataGrid Data="@_teams" TItem="ITeam">
-@*                 <Template Context="team">
-                    <RadzenDataGrid Data="@team.Members" TItem="TMember">
-                        <Columns>
-                            <RadzenDataGridColumn Title="Key" Property="@nameof(ITeamMember.Key)" />
-                            <RadzenDataGridColumn Title="EMail" Property="@nameof(ITeamMember.EMail)" />
-                            <RadzenDataGridColumn Title="Last Seen" Property="@nameof(UserModel.LastSeen)">
-                                <Template>
-                                    <DateTimeView Date="@context.LastSeen" />
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                </Template> *@
+        @* <RadzenCard>
+            <RadzenText>Members</RadzenText>
+            <RadzenDataGrid Data="@_members" TItem="UserModel">
                 <Columns>
-                    <RadzenDataGridColumn Title="Key" Property="Key" />
-                    <RadzenDataGridColumn Title="Icon" Property="Icon" />
-                    <RadzenDataGridColumn Title="Name" Property="Name" />
+                    <RadzenDataGridColumn Title="Key" Property="@nameof(UserModel.Key)"/>
+                    <RadzenDataGridColumn Title="EMail" Property="@nameof(UserModel.EMail)"/>
+                    <RadzenDataGridColumn Title="Last Seen" Property="@nameof(UserModel.LastSeen)">
+                        <Template>
+                            <DateTimeView Date="@context.LastSeen"/>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Teams">
+                        <Template>
+                            @string.Join(", ", context.Teams.Select(x => x.Name))
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenCard> *@
+        <RadzenCard>
+            <RadzenText>Teams</RadzenText>
+            <RadzenDataGrid Data="@_teams" TItem="ITeam">
+                <Columns>
+                    <RadzenDataGridColumn Title="Key" Property="Key"/>
+                    <RadzenDataGridColumn Title="Icon" Property="Icon"/>
+                    <RadzenDataGridColumn Title="Name" Property="Name"/>
                 </Columns>
             </RadzenDataGrid>
         </RadzenCard>
@@ -54,13 +56,13 @@ else
 }
 
 @code {
-    // private ITeam<TMember>[] _teams;
+    private IUser[] _users;
     private ITeam[] _teams;
-    private UserModel[] _members;
+    // private UserModel[] _members;
 
     protected override async Task OnInitializedAsync()
     {
-        //_teams = await TeamService.GetAllTeamsAsync<TMember>().ToArrayAsync();
+        _users = await UserService.GetAllAsync().ToArrayAsync();
         _teams = await TeamService.GetTeamsAsync().ToArrayAsync();
         // _members = _teams
         //     .Where(x => x.Members != null)

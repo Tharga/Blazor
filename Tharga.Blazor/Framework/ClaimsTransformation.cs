@@ -8,8 +8,9 @@ namespace Tharga.Blazor.Framework;
 
 internal static class Constants
 {
-    public const string TeakKeyCookie = "team_id";
-    public const string SelectedTeakKeyCookie = "selected_team_id";
+    public const string TeamKeyCookie = "team_id";
+    public const string SelectedTeamKeyCookie = "selected_team_id";
+    public const string TeamInviteCode = "TeamInviteCode";
 }
 
 public class ClaimsTransformation : IClaimsTransformation
@@ -32,16 +33,16 @@ public class ClaimsTransformation : IClaimsTransformation
 
         if (identity == null || !identity.IsAuthenticated) return principal;
 
-        if (identity.HasClaim(c => c.Type == Constants.TeakKeyCookie)) return principal;
+        if (identity.HasClaim(c => c.Type == Constants.TeamKeyCookie)) return principal;
 
         // Get tenant/team ID from a cookie or session
-        var teamKey = context?.Request.Cookies[Constants.SelectedTeakKeyCookie];
+        var teamKey = context?.Request.Cookies[Constants.SelectedTeamKeyCookie];
 
         var user = await _userService.GetOrCreateAsync(principal);
 
         if (!string.IsNullOrEmpty(teamKey))
         {
-            identity.AddClaim(new Claim(Constants.TeakKeyCookie, teamKey));
+            identity.AddClaim(new Claim(Constants.TeamKeyCookie, teamKey));
 
             //TODO: Figure out what roles this user have in the team
             //var team = await _teamService.GetTeamsAsync(principal).FirstOrDefaultAsync(x => x.Key == teamId);

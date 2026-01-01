@@ -38,10 +38,10 @@ public interface ITeamMember
 //    public DateTime InviteTime { get; init; }
 //}
 
-public record Invitation //: IInvitation
+public record Invitation
 {
     public required string EMail { get; init; }
-    public required string InviteCode { get; init; }
+    public required string InviteKey { get; init; }
     public required DateTime InviteTime { get; init; }
 }
 
@@ -49,7 +49,6 @@ public enum MembershipState
 {
     Member,
     Invited,
-    Evicted,
     Rejected,
 }
 

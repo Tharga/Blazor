@@ -1,0 +1,121 @@
+﻿@using System.Diagnostics
+@using System.Text.Json
+@using Tharga.Team
+@using Tharga.Toolkit
+@typeparam TMember where TMember : class, Tharga.Team.ITeamMember
+@inject ILocalStorageService LocalStorage
+@inject ITeamService TeamService
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<RadzenStack Visible="@(!string.IsNullOrEmpty(_inviteCode) && _team != null)">
+    <CascadingAuthenticationState>
+        <AuthorizeView>
+            <Authorized>
+                <RadzenText Text="@($"You have been invited to team '{_team.Name}'. Do you want to join?")" />
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
+                    <StandardButton Text="Yes" Icon="check_circle" Click="JoinTeam" />
+                    <StandardButton Text="No" Icon="do_not_disturb_on" Click="Decline" />
+                </RadzenStack>
+            </Authorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+</RadzenStack>
+
+@code
+{
+    private string _inviteCode;
+    private ITeam<TMember> _team;
+    private IUser _user;
+
+    [Parameter]
+    public string InviteCode { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var inviteCode = await GetInviteCode();
+        if (string.IsNullOrEmpty(inviteCode)) return;
+
+        try
+        {
+            var inviteModelJson = inviteCode.FromBase64();
+            var inviteModel = JsonSerializer.Deserialize<InviteModel>(inviteModelJson);
+            _team = await TeamService.GetTeamAsync<TMember>(inviteModel.TeamKey);
+            var member = _team?.Members.SingleOrDefault(x => x.Invitation?.InviteKey == inviteModel.Code);
+            if (member == null)
+            {
+                //No team or member found with this invitation.
+                inviteCode = null;
+            }
+            else
+            {
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                _user = await UserService.GetAsync(authState.User);
+                var currentMember = _team.Members.FirstOrDefault(x => x.Key == _user.Key && x.Invitation == null);
+                if (currentMember != null)
+                {
+                    //Current user is already a member of this team.
+                    inviteCode = null;
+                }
+                else
+                {
+                    //NOTE: This is an active correct invite for a user that is not yet a member.
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debugger.Break();
+            inviteCode = null;
+        }
+
+        if (!string.IsNullOrEmpty(inviteCode))
+        {
+            _inviteCode = inviteCode;
+            await LocalStorage.SetItemAsync(Constants.TeamInviteCode, inviteCode);
+        }
+        else
+        {
+            await LocalStorage.RemoveItemAsync(Constants.TeamInviteCode);
+        }
+    }
+
+    private async Task<string> GetInviteCode()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+
+        var values = uri.GetQueryValue(Constants.TeamInviteCode).ToArray();
+        string inviteCode;
+        if (values.Any())
+        {
+            inviteCode = values.First();
+        }
+        else
+        {
+            inviteCode = await LocalStorage.GetItemAsync<string>(Constants.TeamInviteCode);
+        }
+
+        return inviteCode;
+    }
+
+    private async Task JoinTeam()
+    {
+        var inviteModelJson = _inviteCode.FromBase64();
+        var inviteModel = JsonSerializer.Deserialize<InviteModel>(inviteModelJson);
+
+        await TeamService.SetInvitationResponseAsync(_team.Key, _user.Key, inviteModel.Code, true);
+        await LocalStorage.RemoveItemAsync(Constants.TeamInviteCode);
+        NavigationManager.NavigateTo(new Uri(NavigationManager.Uri).RemoveQuery().AbsoluteUri, true);
+    }
+
+    private async Task Decline()
+    {
+        var inviteModelJson = _inviteCode.FromBase64();
+        var inviteModel = JsonSerializer.Deserialize<InviteModel>(inviteModelJson);
+
+        await TeamService.SetInvitationResponseAsync(_team.Key, _user.Key, inviteModel.Code, false);
+        await LocalStorage.RemoveItemAsync(Constants.TeamInviteCode);
+        NavigationManager.NavigateTo(new Uri(NavigationManager.Uri).RemoveQuery().AbsoluteUri, true);
+    }
+}

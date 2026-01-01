@@ -5,11 +5,15 @@
 
 <AuthorizeView>
     <Authorized>
-        @if (_teams == null || SelectedTeam == null)
+        @if (_teams == null) // || SelectedTeam == null)
         {
             <RadzenProgressBarCircular Value="100" Mode="ProgressBarMode.Indeterminate" ShowValue="true" Size="ProgressBarCircularSize.ExtraSmall">
                 <Template>Loading...</Template>
             </RadzenProgressBarCircular>
+        }
+        else if (_teams.Length == 0)
+        {
+            <RadzenLink Text="Create team" Path="/team" />
         }
         else if (_teams.Length == 1)
         {
@@ -50,6 +54,11 @@
         TeamStateService.TeamsListChangedEvent += async (_, _) =>
         {
             await ReloadTeams();
+        };
+
+        TeamService.SelectTeamEvent += (_, e) =>
+        {
+            SelectedTeam = e.Team;
         };
 
         var current = await AuthenticationStateProvider.GetAuthenticationStateAsync();

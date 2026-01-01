@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Tharga.Blazor.Features.BreadCrumbs;
@@ -28,7 +29,7 @@ public static class ThargaBlazorRegistration
             services.AddScoped(typeof(TUserService));
             services.AddScoped(typeof(IUserService), sp => sp.GetRequiredService(typeof(TUserService)));
 
-        services.AddScoped(typeof(TTeamService));
+            services.AddScoped(typeof(TTeamService));
             services.AddScoped(typeof(ITeamService), sp => sp.GetRequiredService(typeof(TTeamService)));
             //TODO: builder.Services.AddScoped<ITeamService<TeamEntity>>(sp => sp.GetRequiredService<TeamService>());
 
@@ -37,4 +38,14 @@ public static class ThargaBlazorRegistration
 
         services.AddSingleton(Options.Create(o));
     }
+
+    //public static void UseThargaBlazor(this IApplicationBuilder app)
+    //{
+    //    app.Map("/TeamInvite", async context =>
+    //    {
+    //        //TODO: Read query parameter "inviteCode".
+    //        //TODO: Store that in a cookie.
+    //        //TODO: Redirect to login.
+    //    });
+    //}
 }
