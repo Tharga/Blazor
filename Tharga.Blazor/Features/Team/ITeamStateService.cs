@@ -8,6 +8,6 @@ public interface ITeamStateService
     event EventHandler<SelectedTeamChangedEventArgs> SelectedTeamChangedEvent;
 
     Task<ITeam> GetSelectedTeamAsync();
-    Task<string> GetSelectedTeamKeyAsync();
+    //Task<string> GetSelectedTeamKeyAsync();
     Task SetSelectedTeamAsync(ITeam selectedTeam);
 }

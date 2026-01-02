@@ -1,15 +1,3 @@
 ﻿namespace Tharga.Team;
 
-public class TeamsListChangedEventArgs : EventArgs
-{
-}
-
-public class SelectTeamEventArgs : EventArgs
-{
-    public SelectTeamEventArgs(ITeam team)
-    {
-        Team = team;
-    }
-
-    public ITeam Team { get; }
-}
+public class TeamsListChangedEventArgs : EventArgs;

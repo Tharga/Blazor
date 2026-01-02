@@ -7,7 +7,6 @@
 @inject ITeamStateService TeamStateService
 @inject IUserService UserService
 @inject IJSRuntime Js
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject DialogService DialogService
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
@@ -28,7 +27,7 @@ else
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
                         <RadzenButton icon="edit" Text="Rename" Click="@(async () => { await RenameTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))"/>
                         <ActionButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Owner))"/>
-                        <RadzenButton icon="remove" Text="Leave" Click="@(async () => { await RemoveUserFromTeam(team, _currentAuthenticationState.User.GetIdentity().Identity); })" Visible="@(!HasAccessLevel(team, AccessLevel.Owner))"/>
+                        <RadzenButton icon="remove" Text="Leave" Click="@(async () => { await RemoveUserFromTeam(team, _user.Key); })" Visible="@(!HasAccessLevel(team, AccessLevel.Owner))"/>
                     </RadzenStack>
                     <RadzenRow>
                         <RadzenColumn>
@@ -48,7 +47,7 @@ else
                                     <RadzenDataGridColumn Title="Name" Property="@nameof(ITeamMember.Name)"/>
                                     <RadzenDataGridColumn Title="Access Level" Property="@nameof(ITeamMember.AccessLevel)">
                                         <Template>
-                                            @if (_currentAuthenticationState.User.GetIdentity().Identity == context.Key || context.AccessLevel == AccessLevel.Owner) //Cannot change self or owner.
+                                            @if (_user.Key == context.Key || context.AccessLevel == AccessLevel.Owner) //Cannot change self or owner.
                                             {
                                                 <RadzenText>@context.AccessLevel</RadzenText>
                                             }
@@ -78,7 +77,7 @@ else
                                                         <StandardButton Icon="link" Click="@(() => CopyInvitationLink(team, context.Key))"/>
                                                     </span>
                                                 }
-                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && _currentAuthenticationState.User.GetIdentity().Identity != context.Key && context.AccessLevel != AccessLevel.Owner)
+                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && _user.Key != context.Key && context.AccessLevel != AccessLevel.Owner)
                                                 {
                                                     <span title="Remove member">
                                                         <StandardButton Icon="remove" Click="@(() => RemoveUserFromTeam(team, context.Key))"/>
@@ -107,16 +106,14 @@ else
 
 @code {
     private ITeam<TMember>[] _teams;
-    private AuthenticationState _currentAuthenticationState;
     private IUser[] _users;
     private ITeam _selectedTeam;
     private IUser _user;
 
     protected override async Task OnInitializedAsync()
     {
-        _users = await UserService.GetAllAsync().ToArrayAsync();
-        _currentAuthenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        _user = await UserService.GetAsync(_currentAuthenticationState.User);
+        _users = await UserService.GetAsync().ToArrayAsync();
+        _user = await UserService.GetCurrentUserAsync();
 
         await ReloadTeams();
 
@@ -177,8 +174,6 @@ else
 
         await TeamService.DeleteTeamAsync(team.Key);
 
-        //NOTE: Wait for delete, then force new team selection and then reload the list.
-        // await Task.Delay(1000);
         await ReloadTeams();
     }
 

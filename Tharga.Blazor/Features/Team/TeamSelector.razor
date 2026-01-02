@@ -5,7 +5,7 @@
 
 <AuthorizeView>
     <Authorized>
-        @if (_teams == null) // || SelectedTeam == null)
+        @if (_teams == null)
         {
             <RadzenProgressBarCircular Value="100" Mode="ProgressBarMode.Indeterminate" ShowValue="true" Size="ProgressBarCircularSize.ExtraSmall">
                 <Template>Loading...</Template>
@@ -13,7 +13,7 @@
         }
         else if (_teams.Length == 0)
         {
-            <RadzenLink Text="Create team" Path="/team" />
+            <RadzenLink Text="Create Team" Path="/team" />
         }
         else if (_teams.Length == 1)
         {

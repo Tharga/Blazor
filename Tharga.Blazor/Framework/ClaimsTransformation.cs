@@ -6,13 +6,6 @@ using Tharga.Toolkit;
 
 namespace Tharga.Blazor.Framework;
 
-internal static class Constants
-{
-    public const string TeamKeyCookie = "team_id";
-    public const string SelectedTeamKeyCookie = "selected_team_id";
-    public const string TeamInviteCode = "TeamInviteCode";
-}
-
 public class ClaimsTransformation : IClaimsTransformation
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -38,16 +31,15 @@ public class ClaimsTransformation : IClaimsTransformation
         // Get tenant/team ID from a cookie or session
         var teamKey = context?.Request.Cookies[Constants.SelectedTeamKeyCookie];
 
-        var user = await _userService.GetOrCreateAsync(principal);
+        //TODO: Cache this by principal identity
+        var user = await _userService.GetCurrentUserAsync(principal);
 
         if (!string.IsNullOrEmpty(teamKey))
         {
             identity.AddClaim(new Claim(Constants.TeamKeyCookie, teamKey));
 
-            //TODO: Figure out what roles this user have in the team
-            //var team = await _teamService.GetTeamsAsync(principal).FirstOrDefaultAsync(x => x.Key == teamId);
-            //var member = team?.Members.FirstOrDefault(x => x.Key == principal.GetIdentity().Identity);
-            var member = await _teamService.GetTeamMemberAsync(teamKey, user.Key, principal);
+            //TODO: Cache this by principal identity
+            var member = await _teamService.GetTeamMemberAsync(teamKey, user.Key);
             if (member != null)
             {
                 identity.AddClaim(new Claim(ClaimTypes.Role, $"Team{member.AccessLevel}"));

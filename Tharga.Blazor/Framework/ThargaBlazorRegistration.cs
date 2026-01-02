@@ -1,6 +1,5 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Tharga.Blazor.Features.BreadCrumbs;
@@ -11,9 +10,7 @@ namespace Tharga.Blazor.Framework;
 
 public static class ThargaBlazorRegistration
 {
-    public static void AddThargaBlazor<TTeamService, TUserService>(this IServiceCollection services, Action<ThargaBlazorOptions> options = null)
-        where TTeamService : ITeamService
-        where TUserService : IUserService
+    public static void AddThargaBlazor(this IServiceCollection services, Action<ThargaBlazorOptions> options = null)
     {
         services.AddScoped<BreadCrumbService>();
         services.AddBlazoredLocalStorage();
@@ -21,20 +18,45 @@ public static class ThargaBlazorRegistration
         var o = new ThargaBlazorOptions();
         options?.Invoke(o);
 
-        //if (o._teamService != null)
-        //{
+        if (o._teamService != null)
+        {
             services.AddThargaTeam();
             services.AddScoped<ITeamStateService, TeamStateService>();
 
-            services.AddScoped(typeof(TUserService));
-            services.AddScoped(typeof(IUserService), sp => sp.GetRequiredService(typeof(TUserService)));
-
-            services.AddScoped(typeof(TTeamService));
-            services.AddScoped(typeof(ITeamService), sp => sp.GetRequiredService(typeof(TTeamService)));
+            services.AddScoped(o._teamService);
+            services.AddScoped(typeof(ITeamService), sp => sp.GetRequiredService(o._teamService));
             //TODO: builder.Services.AddScoped<ITeamService<TeamEntity>>(sp => sp.GetRequiredService<TeamService>());
 
+            if (o._userService != null)
+            {
+                services.AddScoped(o._userService);
+                services.AddScoped(typeof(IUserService), sp => sp.GetRequiredService(o._userService));
+            }
+            else
+            {
+            }
+
+            //if (o._teamRepository != null)
+            //{
+            //    //services.AddScoped(o._teamRepository);
+            //    //services.AddScoped(typeof(ITeamRepo), sp => sp.GetRequiredService(o._teamRepository));
+            //}
+            //else
+            //{
+            //}
+
             services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
-        //}
+        }
+        else
+        {
+            if (o._userService != null)
+            {
+            }
+
+            //if (o._teamRepository != null)
+            //{
+            //}
+        }
 
         services.AddSingleton(Options.Create(o));
     }

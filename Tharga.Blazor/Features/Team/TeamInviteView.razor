@@ -6,7 +6,6 @@
 @inject ILocalStorageService LocalStorage
 @inject ITeamService TeamService
 @inject IUserService UserService
-@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 
 <RadzenStack Visible="@(!string.IsNullOrEmpty(_inviteCode) && _team != null)">
@@ -50,8 +49,8 @@
             }
             else
             {
-                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-                _user = await UserService.GetAsync(authState.User);
+                // var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                _user = await UserService.GetCurrentUserAsync();
                 var currentMember = _team.Members.FirstOrDefault(x => x.Key == _user.Key && x.Invitation == null);
                 if (currentMember != null)
                 {

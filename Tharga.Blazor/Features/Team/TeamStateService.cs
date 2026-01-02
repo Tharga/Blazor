@@ -1,44 +1,12 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Tharga.Blazor.Framework;
 using Tharga.Team;
 
 namespace Tharga.Blazor.Features.Team;
-
-//TODO: Move to Tharga Toolkit.
-static class UriExtensions
-{
-    public static Uri RemoveQuery(this Uri uri)
-    {
-        var builder = new UriBuilder(uri)
-        {
-            Query = string.Empty
-        };
-
-        return builder.Uri;
-    }
-
-    public static IEnumerable<string> GetQueryValue(this Uri uri, string name)
-    {
-        var query = uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
-        foreach (var part in query)
-        {
-            var kvp = part.Split('=', 2);
-
-            if (kvp.Length == 2 && kvp[0] == name)
-            {
-                yield return Uri.UnescapeDataString(kvp[1]);
-            }
-        }
-    }
-}
-
-public record TeamDialogModel
-{
-    public string Name { get; set; }
-}
 
 internal class TeamStateService : ITeamStateService
 {
@@ -47,16 +15,18 @@ internal class TeamStateService : ITeamStateService
     private readonly ILocalStorageService _localStorageService;
     private readonly IJSRuntime _jSRuntime;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
+    private readonly ThargaBlazorOptions _options;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private ITeam _selectedTeam;
 
-    public TeamStateService(ITeamService teamService, NavigationManager navigationManager, ILocalStorageService localStorageService, IJSRuntime jSRuntime, AuthenticationStateProvider authenticationStateProvider)
+    public TeamStateService(ITeamService teamService, NavigationManager navigationManager, ILocalStorageService localStorageService, IJSRuntime jSRuntime, AuthenticationStateProvider authenticationStateProvider, IOptions<ThargaBlazorOptions> options)
     {
         _teamService = teamService;
         _navigationManager = navigationManager;
         _localStorageService = localStorageService;
         _jSRuntime = jSRuntime;
         _authenticationStateProvider = authenticationStateProvider;
+        _options = options.Value;
 
         _teamService.TeamsListChangedEvent += (s, e) => { TeamsListChangedEvent?.Invoke(s, e); };
     }
@@ -85,9 +55,11 @@ internal class TeamStateService : ITeamStateService
                 }
                 else if (!teams.Any())
                 {
-                    //TODO: Have creating a team as an option parameter, or direct to the team page to create one.
-                    //var team = await _teamService.CreateTeamAsync();
-                    //await AssignTeamAsync(team, true);
+                    if (_options.AutoCreateFirstTeam)
+                    {
+                        var team = await _teamService.CreateTeamAsync();
+                        await AssignTeamAsync(team, true);
+                    }
                 }
                 else if (teams.Length == 1)
                 {
@@ -122,15 +94,9 @@ internal class TeamStateService : ITeamStateService
         SelectedTeamChangedEvent?.Invoke(this, new SelectedTeamChangedEventArgs(_selectedTeam));
     }
 
-    public async Task<string> GetSelectedTeamKeyAsync()
-    {
-        var team = await GetSelectedTeamAsync();
-        return team?.Key;
-    }
-
     public async Task SetSelectedTeamAsync(ITeam selectedTeam)
     {
-        await _teamService.SetLastSeenAsync(selectedTeam);
+        await _teamService.SetLastSeenAsync(selectedTeam.Key);
 
         if (_selectedTeam?.Key == selectedTeam.Key) return;
 
