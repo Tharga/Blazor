@@ -128,7 +128,7 @@ else
 
     private async Task RenameTeam(ITeam team)
     {
-        var result = await DialogService.OpenAsync<TeamDialog>(
+        var result = await DialogService.OpenAsync<TeamDialog<TMember>>(
             $"Rename {team.Name}",
             new Dictionary<string, object> { { "TeamKey", team.Key }, { "Name", team.Name } },
             new DialogOptions { Resizable = true, Draggable = true });
@@ -172,7 +172,7 @@ else
         var response = await DialogService.Confirm($"Team '{team.Name}' will be deleted.");
         if (response != true) return;
 
-        await TeamService.DeleteTeamAsync(team.Key);
+        await TeamService.DeleteTeamAsync<TMember>(team.Key);
 
         await ReloadTeams();
     }

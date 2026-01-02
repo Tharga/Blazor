@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Authorization
 @using Tharga.Team
+@typeparam TMember where TMember : class, Tharga.Team.ITeamMember
 @attribute [Authorize]
 @inject DialogService DialogService
 @inject ITeamService TeamService
@@ -51,7 +52,7 @@
     {
         try
         {
-            await TeamService.RenameTeamAsync(TeamKey, model.Name);
+            await TeamService.RenameTeamAsync<TMember>(TeamKey, model.Name);
 
             DialogService.Close(true);
         }

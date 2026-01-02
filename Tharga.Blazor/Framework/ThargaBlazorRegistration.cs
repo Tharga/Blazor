@@ -27,10 +27,11 @@ public static class ThargaBlazorRegistration
             services.AddScoped(typeof(ITeamService), sp => sp.GetRequiredService(o._teamService));
             //TODO: builder.Services.AddScoped<ITeamService<TeamEntity>>(sp => sp.GetRequiredService<TeamService>());
 
-            if (o._userService != null)
+            if (o._userService.Service != null)
             {
-                services.AddScoped(o._userService);
-                services.AddScoped(typeof(IUserService), sp => sp.GetRequiredService(o._userService));
+                services.AddScoped(o._userService.Service);
+                services.AddScoped(typeof(IUserService), sp => sp.GetRequiredService(o._userService.Service));
+                //services.AddScoped(typeof(IUserRep), o._userService.Repository);
             }
             else
             {
@@ -49,7 +50,7 @@ public static class ThargaBlazorRegistration
         }
         else
         {
-            if (o._userService != null)
+            if (o._userService.Service != null)
             {
             }
 
