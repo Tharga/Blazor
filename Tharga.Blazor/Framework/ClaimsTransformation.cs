@@ -37,7 +37,6 @@ public class ClaimsTransformation : IClaimsTransformation
         {
             identity.AddClaim(new Claim(Constants.TeamKeyCookie, teamKey));
 
-            //TODO: Cache this by principal identity
             var member = await _teamService.GetTeamMemberAsync(teamKey, user.Key);
             if (member != null)
             {

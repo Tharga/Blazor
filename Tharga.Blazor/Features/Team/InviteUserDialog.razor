@@ -68,7 +68,7 @@
     {
         try
         {
-            await TeamService.AddTeamMemberAsync(TeamKey, model);
+            await TeamService.AddMemberAsync(TeamKey, model);
 
             DialogService.Close(true);
         }

@@ -96,7 +96,7 @@ internal class TeamStateService : ITeamStateService
 
     public async Task SetSelectedTeamAsync(ITeam selectedTeam)
     {
-        await _teamService.SetLastSeenAsync(selectedTeam.Key);
+        await _teamService.SetMemberLastSeenAsync(selectedTeam.Key);
 
         if (_selectedTeam?.Key == selectedTeam.Key) return;
 
