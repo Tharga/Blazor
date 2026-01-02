@@ -31,7 +31,6 @@ public class ClaimsTransformation : IClaimsTransformation
         // Get tenant/team ID from a cookie or session
         var teamKey = context?.Request.Cookies[Constants.SelectedTeamKeyCookie];
 
-        //TODO: Cache this by principal identity
         var user = await _userService.GetCurrentUserAsync(principal);
 
         if (!string.IsNullOrEmpty(teamKey))

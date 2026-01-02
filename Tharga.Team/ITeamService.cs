@@ -1,4 +1,5 @@
-﻿using Tharga.Toolkit;
+﻿using System.Collections.Concurrent;
+using Tharga.Toolkit;
 
 namespace Tharga.Team;
 
@@ -24,6 +25,7 @@ public interface ITeamService
 public abstract class TeamServiceBase : ITeamService
 {
     private readonly IUserService _userService;
+    private static readonly ConcurrentDictionary<string, ITeamMember> _teamMemberCache = new();
 
     protected TeamServiceBase(IUserService userService)
     {
@@ -61,7 +63,6 @@ public abstract class TeamServiceBase : ITeamService
 
     protected abstract IAsyncEnumerable<ITeam> GetTeamsAsync(IUser user);
     protected abstract Task<ITeam> GetTeamAsync(string teamKey);
-    public abstract Task<ITeamMember> GetTeamMemberAsync(string teamKey, string userKey);
     protected abstract Task<ITeam> CreateTeamAsync(string teamKey, string name, IUser user);
     protected abstract Task SetTeamNameAsync(string teamKey, string name);
     protected abstract Task DeleteTeamAsyncA(string teamKey);
@@ -69,6 +70,20 @@ public abstract class TeamServiceBase : ITeamService
     protected abstract Task RemoveMemberAsyncA(string teamKey, string userKey);
     protected abstract Task<ITeam> SetInvitationResponseAsyncA(string teamKey, string userKey, string inviteKey, bool accept);
     protected abstract Task SetLastSeenAsync(string teamKey, string userKey);
+    protected abstract Task<ITeamMember> GetTeamMemberAsyncA(string teamKey, string userKey);
+    protected abstract Task SetMemberRoleAsyncA(string teamKey, string userKey, AccessLevel accessLevel);
+
+    public async Task<ITeamMember> GetTeamMemberAsync(string teamKey, string userKey)
+    {
+        var key = $"{teamKey}.{userKey}";
+        if (_teamMemberCache.TryGetValue(key, out var teamMember)) return teamMember;
+
+        teamMember = await GetTeamMemberAsyncA(teamKey, userKey);
+
+        _teamMemberCache.TryAdd(key, teamMember);
+
+        return teamMember;
+    }
 
     public async Task<ITeam> CreateTeamAsync(string name)
     {
@@ -120,10 +135,15 @@ public abstract class TeamServiceBase : ITeamService
     public async Task RemoveMemberAsync(string teamKey, string userKey)
     {
         await RemoveMemberAsyncA(teamKey, userKey);
+        _teamMemberCache.TryRemove($"{teamKey}.{userKey}", out _);
         TeamsListChangedEvent?.Invoke(this, new TeamsListChangedEventArgs());
     }
 
-    public abstract Task SetMemberRoleAsync(string teamKey, string userKey, AccessLevel accessLevel);
+    public async Task SetMemberRoleAsync(string teamKey, string userKey, AccessLevel accessLevel)
+    {
+        await SetMemberRoleAsyncA(teamKey, userKey, accessLevel);
+        _teamMemberCache.TryRemove($"{teamKey}.{userKey}", out _);
+    }
 
     public async Task SetInvitationResponseAsync(string teamKey, string userKey, string inviteKey, bool accept)
     {
@@ -137,12 +157,15 @@ public abstract class TeamServiceBase : ITeamService
         {
             await SetInvitationResponseAsyncA(teamKey, userKey, inviteKey, false);
         }
+
+        _teamMemberCache.TryRemove($"{teamKey}.{userKey}", out _);
     }
 
     public async Task SetLastSeenAsync(string teamKey)
     {
         var user = await GetCurrentUserAsync();
         await SetLastSeenAsync(teamKey, user.Key);
+        _teamMemberCache.TryRemove($"{teamKey}.{user.Key}", out _);
     }
 
     private async Task<string> GetRandomUnsusedTeamKey()
