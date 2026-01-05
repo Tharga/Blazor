@@ -41,7 +41,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Toolkit\Tharga.Toolkit\Tharga.Toolkit.csproj" />
     <ProjectReference Include="..\Tharga.Team\Tharga.Team.csproj" />
   </ItemGroup>
 </Project>

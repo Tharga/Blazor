@@ -16,6 +16,8 @@ public abstract class UserServiceBase : IUserService
     {
         claimsPrincipal = await GetClaims(claimsPrincipal);
         var identity = claimsPrincipal.GetIdentity().Identity;
+        if (identity == null) return null;
+
         if (_userCache.TryGetValue(identity, out var user)) return user;
 
         var userEntity = await GetUserAsync(claimsPrincipal);
