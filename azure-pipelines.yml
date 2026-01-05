@@ -59,6 +59,13 @@ stages:
         versioningScheme: 'byBuildNumber'
 
     - task: DotNetCoreCLI@2
+      displayName: 'Pack Tharga.Team'
+      inputs:
+        command: 'pack'
+        packagesToPack: '**/Tharga.Team.csproj'
+        versioningScheme: 'byBuildNumber'
+
+    - task: DotNetCoreCLI@2
       displayName: 'Push nuget packages locally'
       inputs:
         command: 'push'
