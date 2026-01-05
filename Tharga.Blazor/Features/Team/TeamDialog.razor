@@ -1,0 +1,70 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Tharga.Team
+@typeparam TMember where TMember : class, Tharga.Team.ITeamMember
+@attribute [Authorize]
+@inject DialogService DialogService
+@inject ITeamService TeamService
+
+<RadzenTemplateForm TItem="TeamDialogModel" Data=@Model Submit=@OnSubmit Style="height: 100%;">
+    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+        <RadzenStack>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Caption">Name</RadzenText>
+                    <div><RadzenTextBox Name="Name" @bind-Value="@Model.Name" Style="width: 100%; min-width: 174px;" /></div>
+                    <RadzenRequiredValidator Component="Name" Text="Name is required." />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow>
+                <RadzenColumn>
+                    <span class="validation-message">@_errorMessage</span>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStack>
+        <RadzenStack></RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+            <RadzenButton ButtonType="ButtonType.Submit" Text="OK" Icon="check_circle" />
+            <CancelButton Click="CloseDialog" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    private string _errorMessage;
+
+    [Parameter]
+    public string TeamKey { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    private TeamDialogModel Model { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model = new TeamDialogModel { Name = Name };
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit(TeamDialogModel model)
+    {
+        try
+        {
+            await TeamService.RenameTeamAsync<TMember>(TeamKey, model.Name);
+
+            DialogService.Close(true);
+        }
+        catch (Exception e)
+        {
+            _errorMessage = e.Message;
+        }
+    }
+
+    private Task CloseDialog()
+    {
+        DialogService.Close();
+        return Task.CompletedTask;
+    }
+}

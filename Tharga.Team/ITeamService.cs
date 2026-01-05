@@ -1,0 +1,20 @@
+﻿namespace Tharga.Team;
+
+public interface ITeamService
+{
+    event EventHandler<TeamsListChangedEventArgs> TeamsListChangedEvent;
+    event EventHandler<SelectTeamEventArgs> SelectTeamEvent;
+
+    IAsyncEnumerable<ITeam> GetTeamsAsync();
+    IAsyncEnumerable<ITeam<TMember>> GetTeamsAsync<TMember>() where TMember : ITeamMember;
+    Task<ITeam<TMember>> GetTeamAsync<TMember>(string teamKey) where TMember : ITeamMember;
+    Task<ITeam> CreateTeamAsync(string name = null);
+    Task RenameTeamAsync<TMember>(string teamKey, string name) where TMember : ITeamMember;
+    Task DeleteTeamAsync<TMember>(string teamKey) where TMember : ITeamMember;
+    Task<ITeamMember> GetTeamMemberAsync(string teamKey, string userKey);
+    Task AddMemberAsync(string teamKey, InviteUserModel model);
+    Task RemoveMemberAsync(string teamKey, string userKey);
+    Task SetMemberRoleAsync(string teamKey, string userKey, AccessLevel accessLevel);
+    Task SetInvitationResponseAsync(string teamKey, string userKey, string inviteCode, bool accept);
+    Task SetMemberLastSeenAsync(string teamKey);
+}

@@ -1,4 +1,6 @@
-﻿namespace Tharga.Blazor.Features.Team;
+﻿using Tharga.Team;
+
+namespace Tharga.Blazor.Features.Team;
 
 public interface ITeamStateService
 {
@@ -6,6 +8,6 @@ public interface ITeamStateService
     event EventHandler<SelectedTeamChangedEventArgs> SelectedTeamChangedEvent;
 
     Task<ITeam> GetSelectedTeamAsync();
-    Task<string> GetSelectedTeamKeyAsync();
+    //Task<string> GetSelectedTeamKeyAsync();
     Task SetSelectedTeamAsync(ITeam selectedTeam);
 }

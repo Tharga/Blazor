@@ -1,4 +1,6 @@
-﻿@using Microsoft.Extensions.Logging
+﻿@using System.Collections
+@using Microsoft.Extensions.Logging
+@using Tharga.Toolkit.Logging
 @* @using Quilt4Net.Toolkit.Features.Measure *@
 @inherits ErrorBoundary
 @inject ILogger<CustomErrorBoundary> Logger
@@ -44,13 +46,12 @@ else
     protected override Task OnErrorAsync(Exception e)
     {
         _correlationId = Guid.NewGuid();
+        e.TryAddData("CorrelationId", _correlationId);
 
-        // e.AddData("CorrelationId", _correlationId);
-
-        // using (Logger.BeginScope(e.ToDictionary()))
-        // {
-        //     Logger.LogError(e, e.Message);
-        // }
+        using (Logger.BeginScope(e.ToDictionary()))
+        {
+            Logger.LogError(e, e.Message);
+        }
 
         return Task.CompletedTask;
     }

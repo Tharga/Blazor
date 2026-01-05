@@ -1,0 +1,32 @@
+﻿@using Tharga.Toolkit
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+                <RadzenCard>
+                    <RadzenText>
+                        <RadzenGravatar Email="@context.User.GetEmail()" AlternateText="@context.User.GetEmail()"/> To change profile image register your email at <RadzenLink Path="https://gravatar.com/" Target="gravatar">Gravatar</RadzenLink>.
+                    </RadzenText>
+                </RadzenCard>
+                <ExpandableCard Icon="work" Text="Claims">
+                    <ChildContent>
+                        <ul>
+                            @foreach (var claim in context.User.Claims)
+                            {
+                                <li><strong>@claim.Type:</strong> @claim.Value</li>
+                            }
+                        </ul>
+                    </ChildContent>
+                </ExpandableCard>
+            </RadzenStack>
+        </Authorized>
+        <NotAuthorized>
+            <RadzenText>Not authorized</RadzenText>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+
+}

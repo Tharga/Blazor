@@ -1,7 +1,10 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
+using Tharga.Blazor.Framework;
+using Tharga.Team;
 
 namespace Tharga.Blazor.Features.Team;
 
@@ -12,16 +15,18 @@ internal class TeamStateService : ITeamStateService
     private readonly ILocalStorageService _localStorageService;
     private readonly IJSRuntime _jSRuntime;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
+    private readonly ThargaBlazorOptions _options;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private ITeam _selectedTeam;
 
-    public TeamStateService(ITeamService teamService, NavigationManager navigationManager, ILocalStorageService localStorageService, IJSRuntime jSRuntime, AuthenticationStateProvider authenticationStateProvider)
+    public TeamStateService(ITeamService teamService, NavigationManager navigationManager, ILocalStorageService localStorageService, IJSRuntime jSRuntime, AuthenticationStateProvider authenticationStateProvider, IOptions<ThargaBlazorOptions> options)
     {
         _teamService = teamService;
         _navigationManager = navigationManager;
         _localStorageService = localStorageService;
         _jSRuntime = jSRuntime;
         _authenticationStateProvider = authenticationStateProvider;
+        _options = options.Value;
 
         _teamService.TeamsListChangedEvent += (s, e) => { TeamsListChangedEvent?.Invoke(s, e); };
     }
@@ -42,7 +47,7 @@ internal class TeamStateService : ITeamStateService
 
             if (_selectedTeam == null || teams.All(x => x.Key != _selectedTeam.Key) || teams.FirstOrDefault(x => x.Key == _selectedTeam.Key)?.Name != _selectedTeam.Name)
             {
-                var t = authState.User.Claims.FirstOrDefault(x => x.Type == "team_id");
+                var t = authState.User.Claims.FirstOrDefault(x => x.Type == Constants.TeamKeyCookie);
                 if (t != null)
                 {
                     var team = teams.FirstOrDefault(x => x.Key == t.Value) ?? teams.FirstOrDefault();
@@ -50,8 +55,11 @@ internal class TeamStateService : ITeamStateService
                 }
                 else if (!teams.Any())
                 {
-                    var team = await _teamService.CreateTeamAsync();
-                    await AssignTeamAsync(team, true);
+                    if (_options.AutoCreateFirstTeam)
+                    {
+                        var team = await _teamService.CreateTeamAsync();
+                        await AssignTeamAsync(team, true);
+                    }
                 }
                 else if (teams.Length == 1)
                 {
@@ -86,22 +94,16 @@ internal class TeamStateService : ITeamStateService
         SelectedTeamChangedEvent?.Invoke(this, new SelectedTeamChangedEventArgs(_selectedTeam));
     }
 
-    public async Task<string> GetSelectedTeamKeyAsync()
-    {
-        var team = await GetSelectedTeamAsync();
-        return team?.Key;
-    }
-
     public async Task SetSelectedTeamAsync(ITeam selectedTeam)
     {
-        await _teamService.SetLastSeenAsync(selectedTeam);
+        await _teamService.SetMemberLastSeenAsync(selectedTeam.Key);
 
-        if (_selectedTeam.Key == selectedTeam.Key) return;
+        if (_selectedTeam?.Key == selectedTeam.Key) return;
 
         _selectedTeam = selectedTeam;
         await _localStorageService.SetItemAsStringAsync("SelectedTeam", selectedTeam.Key);
 
-        await _jSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'selected_team_id={_selectedTeam.Key}; path=/'");
+        await _jSRuntime.InvokeVoidAsync("eval", $"document.cookie = '{Constants.SelectedTeamKeyCookie}={_selectedTeam?.Key}; path=/'");
         _navigationManager.Refresh(true);
     }
 }
