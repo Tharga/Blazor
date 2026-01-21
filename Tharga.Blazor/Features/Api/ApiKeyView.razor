@@ -1,0 +1,90 @@
+﻿@using Microsoft.JSInterop
+@using Tharga.Blazor.Features.Team
+@using Tharga.Team
+@inject ITeamStateService TeamStateService
+@inject IApiKeyAdministrationService ApiKeyAdministrationService
+@inject IJSRuntime Js
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+@if (_keys == null)
+{
+    <Loading />
+}
+else
+{
+    <RadzenDataGrid Data="@_keys" TItem="ApiKeyModel">
+        <Columns>
+            <RadzenDataGridColumn Title="Name" Property="@nameof(ApiKeyModel.Name)" Width="180px" />
+            <RadzenDataGridColumn Title="Key" Property="@nameof(ApiKeyModel.VisibleKey)" />
+            <RadzenDataGridColumn Width="180px">
+                <Template>
+                    <RadzenButton icon="visibility" Click="@(_ => context.VisibleKey = context.ApiKey)" Visible="@(!string.IsNullOrEmpty(context.ApiKey) && context.VisibleKey == _apiKeyMask)" />
+                    <RadzenButton icon="visibility_off" Click="@(_ => context.VisibleKey = _apiKeyMask)" Visible="@(!string.IsNullOrEmpty(context.ApiKey) && context.VisibleKey != _apiKeyMask)" />
+                    <RadzenButton Icon="content_copy" Click="@(_ => CopyToClipboard(context))" Visible="@(!string.IsNullOrEmpty(context.ApiKey))" />
+                    <RadzenButton icon="lock" Click="@(_ => LockKeyAsync(context))" Visible="@(!string.IsNullOrEmpty(context.ApiKey))" />
+                    <RadzenButton Icon="refresh" Click="@(_ => RefreshAsync(context))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    private ITeam _selectedTeam;
+    private ApiKeyModel[] _keys;
+    private readonly string _apiKeyMask = "**********";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _selectedTeam = await TeamStateService.GetSelectedTeamAsync();
+
+        await ReloadData();
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task RefreshAsync(ApiKeyModel context)
+    {
+        var result = await DialogService.Confirm($"The {context.Name} key will be regenerated.", "Confirm regenerate api key");
+        if (result != true) return;
+
+        await ApiKeyAdministrationService.RefreshKeyAsync(_selectedTeam.Key, context.Key);
+        await ReloadData();
+    }
+
+    private async Task ReloadData()
+    {
+        if (_selectedTeam?.Key == null) return;
+
+        var keys = await ApiKeyAdministrationService.GetKeysAsync(_selectedTeam.Key).ToArrayAsync();
+        _keys = keys
+            .Select(x => new ApiKeyModel
+                {
+                    Key = x.Key,
+                    Name = x.Name,
+                    ApiKey = x.ApiKey,
+                    VisibleKey = _apiKeyMask
+                }).ToArray();
+
+        StateHasChanged();
+    }
+
+    private async Task CopyToClipboard(ApiKeyModel context)
+    {
+        await Js.InvokeVoidAsync("clipboard.copyText", context.ApiKey);
+        NotificationService.Notify(new NotificationMessage
+        {
+            Summary = $"The {context.Name} key has been copied to the clipboard."
+        });
+    }
+
+    private async Task LockKeyAsync(ApiKeyModel context)
+    {
+        var result = await DialogService.Confirm($"The {context.Name} key will be locked. After that, it cannot be retrieved.", "Confirm regenerate api key");
+        if (result != true) return;
+
+        await ApiKeyAdministrationService.LockKeyAsync(context.Key);
+        await ReloadData();
+    }
+}
