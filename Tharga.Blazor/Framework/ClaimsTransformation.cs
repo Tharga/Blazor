@@ -37,12 +37,11 @@ public class ClaimsTransformation : IClaimsTransformation
         {
             identity.AddClaim(new Claim(Constants.TeamKeyCookie, teamKey));
 
-            var member = await _teamService.GetTeamMemberAsync(teamKey, user.Key);
+            var member = await _teamService.GetTeamMemberAsync(teamKey, user?.Key);
             if (member != null)
             {
                 identity.AddClaim(new Claim(ClaimTypes.Role, Roles.TeamUser));
                 identity.AddClaim(new Claim(ClaimTypes.Role, $"Team{member.AccessLevel}"));
-                //identity.AddClaim(new Claim(ClaimTypes.Role, $"Status{member.Status}"));
             }
         }
 
