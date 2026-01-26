@@ -37,18 +37,18 @@ public class ClaimsTransformation : IClaimsTransformation
         {
             identity.AddClaim(new Claim(Constants.TeamKeyCookie, teamKey));
 
-            var member = await _teamService.GetTeamMemberAsync(teamKey, user.Key);
+            var member = await _teamService.GetTeamMemberAsync(teamKey, user?.Key);
             if (member != null)
             {
+                identity.AddClaim(new Claim(ClaimTypes.Role, Roles.TeamUser));
                 identity.AddClaim(new Claim(ClaimTypes.Role, $"Team{member.AccessLevel}"));
-                //identity.AddClaim(new Claim(ClaimTypes.Role, $"Status{member.Status}"));
             }
         }
 
         //TODO: When we use Entra, there should be a developer role to assign there.
         if (identity.GetEmail()?.Contains("daniel.bohlin", StringComparison.InvariantCultureIgnoreCase) ?? false)
         {
-            identity.AddClaim(new Claim(ClaimTypes.Role, "Developer"));
+            identity.AddClaim(new Claim(ClaimTypes.Role, Roles.Developer));
         }
 
         return principal;

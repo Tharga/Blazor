@@ -1,5 +1,4 @@
-﻿@using System.Diagnostics
-@using System.Text.Json
+﻿@using System.Text.Json
 @using Tharga.Team
 @using Tharga.Toolkit
 @typeparam TMember where TMember : class, Tharga.Team.ITeamMember
@@ -63,9 +62,8 @@
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            Debugger.Break();
             inviteCode = null;
         }
 

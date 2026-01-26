@@ -1,9 +1,7 @@
 ﻿namespace Tharga.Blazor.Framework;
 
-[Obsolete("Use from Tharga.Toolkit in version 1.15.17+")]
 public static class UriExtensions
 {
-    [Obsolete("Use from Tharga.Toolkit in version 1.15.17+")]
     public static Uri RemoveQuery(this Uri uri)
     {
         var builder = new UriBuilder(uri)
@@ -14,7 +12,6 @@ public static class UriExtensions
         return builder.Uri;
     }
 
-    [Obsolete("Use from Tharga.Toolkit in version 1.15.17+")]
     public static IEnumerable<string> GetQueryValue(this Uri uri, string name)
     {
         var query = uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);

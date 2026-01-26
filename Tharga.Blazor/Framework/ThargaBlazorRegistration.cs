@@ -29,6 +29,12 @@ public static class ThargaBlazorRegistration
             services.AddScoped(o._userService);
             services.AddScoped(typeof(IUserService), sp => sp.GetRequiredService(o._userService));
 
+            if (o._apiKeyService != null)
+            {
+                services.AddScoped(o._apiKeyService);
+                services.AddScoped(typeof(IApiKeyAdministrationService), sp => sp.GetRequiredService(o._apiKeyService));
+            }
+
             services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
         }
 

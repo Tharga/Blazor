@@ -6,6 +6,7 @@ public record ThargaBlazorOptions
 {
     internal Type _teamService;
     internal Type _userService;
+    internal Type _apiKeyService;
 
     public string Title { get; set; }
 
@@ -26,5 +27,11 @@ public record ThargaBlazorOptions
     {
         _teamService = typeof(TServiceBase);
         _userService = typeof(TUserService);
+    }
+
+    public void RegisterApiKeyAdministrationService<TApiKeyService>()
+        where TApiKeyService : IApiKeyAdministrationService
+    {
+        _apiKeyService = typeof(TApiKeyService);
     }
 }
