@@ -129,9 +129,9 @@ public class BreadCrumbService
         }
     }
 
-    public void AddVirtualSegment(string text)
+    public void AddVirtualSegment(string text, string path = null)
     {
-        _virtualSegments = [.. _virtualSegments, new BreadCrumb { Text = text, Path = null }];
+        _virtualSegments = [.. _virtualSegments, new BreadCrumb { Text = text, Path = path }];
         ChangeEvent?.Invoke(this, EventArgs.Empty);
     }
 

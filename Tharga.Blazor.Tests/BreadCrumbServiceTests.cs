@@ -213,4 +213,33 @@ public class BreadCrumbServiceTests
 
         Assert.True(fired);
     }
+
+    [Fact]
+    public void AddVirtualSegment_WithPath_CreatesLinkableSegment()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log/detail/abc123");
+        var svc = new BreadCrumbService(nav);
+
+        svc.AddVirtualSegment("search", "/developer/log?tab=search");
+        svc.AddVirtualSegment("abc123");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        var searchItem = items.FirstOrDefault(x => x.Text == "Search");
+        Assert.NotNull(searchItem);
+        Assert.Equal("/developer/log?tab=search", searchItem.Path);
+    }
+
+    [Fact]
+    public void AddVirtualSegment_WithPath_LastSegmentStillHasNoLink()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log/detail/abc123");
+        var svc = new BreadCrumbService(nav);
+
+        svc.AddVirtualSegment("search", "/developer/log?tab=search");
+        svc.AddVirtualSegment("abc123");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        Assert.Null(items.Last().Path);
+        Assert.Equal("/developer/log?tab=search", items[^2].Path);
+    }
 }
