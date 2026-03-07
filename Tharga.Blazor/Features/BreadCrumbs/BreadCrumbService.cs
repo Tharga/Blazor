@@ -8,6 +8,7 @@ public class BreadCrumbService
     private BreadCrumb[] _segments = [];
     private BreadCrumb[] _virtualSegments = [];
     private readonly Dictionary<string, List<Modifier>> _modifiers = new ();
+    private string _lastNormalizedUri;
     private readonly NavigationManager _navigationManager;
 
     public BreadCrumbService(NavigationManager navigationManager)
@@ -26,7 +27,12 @@ public class BreadCrumbService
 
     private void Build(NavigationManager navigationManager, object s)
     {
-        _virtualSegments = [];
+        var normalizedUri = NormalizeUri(navigationManager.Uri);
+        if (normalizedUri != _lastNormalizedUri)
+        {
+            _virtualSegments = [];
+            _lastNormalizedUri = normalizedUri;
+        }
 
         var parts = navigationManager.Uri
             .Split('/')

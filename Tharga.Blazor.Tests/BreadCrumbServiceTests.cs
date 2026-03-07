@@ -69,16 +69,29 @@ public class BreadCrumbServiceTests
     }
 
     [Fact]
-    public void Navigation_ClearsVirtualSegments()
+    public void Navigation_ClearsVirtualSegmentsWhenPathChanges()
     {
         var nav = new FakeNavigationManager("https://localhost/developer/log");
         var svc = new BreadCrumbService(nav);
         svc.AddVirtualSegment("search");
 
-        nav.ChangeUri("https://localhost/developer/log");
+        nav.ChangeUri("https://localhost/developer/other");
 
         var items = svc.BreadCrumbItems.ToArray();
         Assert.DoesNotContain(items, x => x.Text == "Search");
+    }
+
+    [Fact]
+    public void Navigation_PreservesVirtualSegmentsWhenOnlyQueryParamsChange()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log");
+        var svc = new BreadCrumbService(nav);
+        svc.AddVirtualSegment("search");
+
+        nav.ChangeUri("https://localhost/developer/log?tab=summary");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        Assert.Contains(items, x => x.Text == "Search");
     }
 
     [Fact]
