@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Tharga.Toolkit;
 
 namespace Tharga.Blazor.Features.BreadCrumbs;
@@ -6,6 +6,7 @@ namespace Tharga.Blazor.Features.BreadCrumbs;
 public class BreadCrumbService
 {
     private BreadCrumb[] _segments = [];
+    private BreadCrumb[] _virtualSegments = [];
     private readonly Dictionary<string, List<Modifier>> _modifiers = new ();
     private readonly NavigationManager _navigationManager;
 
@@ -19,6 +20,8 @@ public class BreadCrumbService
 
     private void Build(NavigationManager navigationManager, object s)
     {
+        _virtualSegments = [];
+
         var parts = navigationManager.Uri
             .Split('/')
             .Skip(3)
@@ -48,6 +51,8 @@ public class BreadCrumbService
                             return null;
                         case Modifyer.Unlink:
                             return x with { Path = null };
+                        case Modifyer.Relink:
+                            return x with { Path = item.RelinkUrl };
                         case null:
                             return x;
                         default:
@@ -58,18 +63,20 @@ public class BreadCrumbService
                 .ToArray();
         }
 
-        //_segments = _modifier?.Invoke(_segments).ToArray() ?? _segments;
         ChangeEvent?.Invoke(s, EventArgs.Empty);
     }
 
     public event EventHandler<EventArgs> ChangeEvent;
 
-    public IEnumerable<BreadCrumb> BreadCrumbItems =>
-        _segments
-            .Select((path, index) =>
+    public IEnumerable<BreadCrumb> BreadCrumbItems
+    {
+        get
+        {
+            var all = _segments.Concat(_virtualSegments).ToArray();
+            return all.Select((path, index) =>
             {
                 var text = path.Text.Substring(0, 1).ToUpper() + path.Text.Substring(1);
-                var disabled = index == _segments.Length - 1;
+                var disabled = index == all.Length - 1;
 
                 return new BreadCrumb
                 {
@@ -77,6 +84,38 @@ public class BreadCrumbService
                     Path = disabled ? null : path.Path
                 };
             });
+        }
+    }
+
+    public void AddVirtualSegment(string text)
+    {
+        _virtualSegments = [.. _virtualSegments, new BreadCrumb { Text = text, Path = null }];
+        ChangeEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RemoveVirtualSegments()
+    {
+        _virtualSegments = [];
+        ChangeEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RelinkSegment(string text, string url)
+    {
+        if (_modifiers.TryGetValue(_navigationManager.Uri, out var modifiers))
+        {
+            var item = modifiers.FirstOrDefault(x => x.Text == text);
+            if (item == null)
+            {
+                modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url });
+                Build(_navigationManager, this);
+            }
+        }
+        else
+        {
+            _modifiers.Add(_navigationManager.Uri, [new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url }]);
+            Build(_navigationManager, this);
+        }
+    }
 
     public void UnlinkSegment(string text)
     {
@@ -118,11 +157,13 @@ public class BreadCrumbService
     {
         public required string Text { get; init; }
         public required Modifyer Modifyer { get; init; }
+        public string RelinkUrl { get; init; }
     }
 
     public enum Modifyer
     {
         Remove,
-        Unlink
+        Unlink,
+        Relink
     }
 }
