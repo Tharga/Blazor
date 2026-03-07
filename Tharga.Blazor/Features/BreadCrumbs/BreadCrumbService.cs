@@ -18,6 +18,12 @@ public class BreadCrumbService
         Build(navigationManager, this);
     }
 
+    private static string NormalizeUri(string uri)
+    {
+        var idx = uri.IndexOf('?');
+        return idx >= 0 ? uri.Substring(0, idx) : uri;
+    }
+
     private void Build(NavigationManager navigationManager, object s)
     {
         _virtualSegments = [];
@@ -40,7 +46,7 @@ public class BreadCrumbService
             })
             .ToArray();
 
-        if (_modifiers.TryGetValue(navigationManager.Uri, out var modifiers))
+        if (_modifiers.TryGetValue(NormalizeUri(navigationManager.Uri), out var modifiers))
         {
             _segments = _segments.Select(x =>
                 {
@@ -95,13 +101,15 @@ public class BreadCrumbService
 
     public void RemoveVirtualSegments()
     {
+        if (_virtualSegments.Length == 0) return;
         _virtualSegments = [];
         ChangeEvent?.Invoke(this, EventArgs.Empty);
     }
 
     public void RelinkSegment(string text, string url)
     {
-        if (_modifiers.TryGetValue(_navigationManager.Uri, out var modifiers))
+        var key = NormalizeUri(_navigationManager.Uri);
+        if (_modifiers.TryGetValue(key, out var modifiers))
         {
             var item = modifiers.FirstOrDefault(x => x.Text == text);
             if (item == null)
@@ -112,14 +120,15 @@ public class BreadCrumbService
         }
         else
         {
-            _modifiers.Add(_navigationManager.Uri, [new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url }]);
+            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url }]);
             Build(_navigationManager, this);
         }
     }
 
     public void UnlinkSegment(string text)
     {
-        if (_modifiers.TryGetValue(_navigationManager.Uri, out var modifiers))
+        var key = NormalizeUri(_navigationManager.Uri);
+        if (_modifiers.TryGetValue(key, out var modifiers))
         {
             var item = modifiers.FirstOrDefault(x => x.Text == text);
             if (item == null)
@@ -130,14 +139,15 @@ public class BreadCrumbService
         }
         else
         {
-            _modifiers.Add(_navigationManager.Uri, [new Modifier { Text = text, Modifyer = Modifyer.Unlink}]);
+            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Unlink }]);
             Build(_navigationManager, this);
         }
     }
 
     public void RemoveSegment(string text)
     {
-        if (_modifiers.TryGetValue(_navigationManager.Uri, out var modifiers))
+        var key = NormalizeUri(_navigationManager.Uri);
+        if (_modifiers.TryGetValue(key, out var modifiers))
         {
             var item = modifiers.FirstOrDefault(x => x.Text == text);
             if (item == null)
@@ -148,7 +158,7 @@ public class BreadCrumbService
         }
         else
         {
-            _modifiers.Add(_navigationManager.Uri, [new Modifier { Text = text, Modifyer = Modifyer.Remove}]);
+            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Remove }]);
             Build(_navigationManager, this);
         }
     }

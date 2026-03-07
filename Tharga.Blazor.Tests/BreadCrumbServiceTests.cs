@@ -120,4 +120,32 @@ public class BreadCrumbServiceTests
         Assert.Contains(items, x => x.Text == "Monitor");
         Assert.Contains(items, x => x.Text == "Summary");
     }
+
+    [Fact]
+    public void UnlinkSegment_PersistsAfterQueryParamChange()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log");
+        var svc = new BreadCrumbService(nav);
+        svc.UnlinkSegment("log");
+
+        nav.ChangeUri("https://localhost/developer/log?tab=summary");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        var logItem = items.FirstOrDefault(x => x.Text == "Log");
+        Assert.NotNull(logItem);
+        Assert.Null(logItem.Path);
+    }
+
+    [Fact]
+    public void RemoveVirtualSegments_DoesNotFireEventWhenAlreadyEmpty()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log");
+        var svc = new BreadCrumbService(nav);
+        var fired = false;
+        svc.ChangeEvent += (_, _) => fired = true;
+
+        svc.RemoveVirtualSegments();
+
+        Assert.False(fired);
+    }
 }
