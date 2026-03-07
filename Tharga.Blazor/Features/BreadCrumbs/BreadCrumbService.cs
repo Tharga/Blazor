@@ -6,7 +6,6 @@ namespace Tharga.Blazor.Features.BreadCrumbs;
 public class BreadCrumbService
 {
     private BreadCrumb[] _segments = [];
-    //private Func<IEnumerable<BreadCrumb>, IEnumerable<BreadCrumb>> _modifier;
     private readonly Dictionary<string, List<Modifier>> _modifiers = new ();
     private readonly NavigationManager _navigationManager;
 
@@ -78,13 +77,6 @@ public class BreadCrumbService
                     Path = disabled ? null : path.Path
                 };
             });
-
-    //public void Update(Func<IEnumerable<BreadCrumb>, IEnumerable<BreadCrumb>> modifier)
-    //{
-    //    _modifier = modifier;
-    //    _segments = modifier.Invoke(_segments).ToArray();
-    //    ChangeEvent?.Invoke(this, EventArgs.Empty);
-    //}
 
     public void UnlinkSegment(string text)
     {
