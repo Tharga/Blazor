@@ -161,4 +161,56 @@ public class BreadCrumbServiceTests
 
         Assert.False(fired);
     }
+
+    [Fact]
+    public void RegisterVirtualSegmentQueryParam_ShowsQueryParamValueAsVirtualSegment()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log?tab=summary");
+        var svc = new BreadCrumbService(nav);
+
+        svc.RegisterVirtualSegmentQueryParam("tab");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        Assert.Contains(items, x => x.Text == "Summary");
+    }
+
+    [Fact]
+    public void RegisterVirtualSegmentQueryParam_UpdatesOnNavigation()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log?tab=search");
+        var svc = new BreadCrumbService(nav);
+        svc.RegisterVirtualSegmentQueryParam("tab");
+
+        nav.ChangeUri("https://localhost/developer/log?tab=summary");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        Assert.Contains(items, x => x.Text == "Summary");
+        Assert.DoesNotContain(items, x => x.Text == "Search");
+    }
+
+    [Fact]
+    public void RegisterVirtualSegmentQueryParam_ClearsWhenNavigatingToPathWithoutParam()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log?tab=summary");
+        var svc = new BreadCrumbService(nav);
+        svc.RegisterVirtualSegmentQueryParam("tab");
+
+        nav.ChangeUri("https://localhost/developer/other");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        Assert.DoesNotContain(items, x => x.Text == "Summary");
+    }
+
+    [Fact]
+    public void RegisterVirtualSegmentQueryParam_FiresChangeEvent()
+    {
+        var nav = new FakeNavigationManager("https://localhost/developer/log?tab=summary");
+        var svc = new BreadCrumbService(nav);
+        var fired = false;
+        svc.ChangeEvent += (_, _) => fired = true;
+
+        svc.RegisterVirtualSegmentQueryParam("tab");
+
+        Assert.True(fired);
+    }
 }

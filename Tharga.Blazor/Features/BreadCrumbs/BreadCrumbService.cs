@@ -7,7 +7,9 @@ public class BreadCrumbService
 {
     private BreadCrumb[] _segments = [];
     private BreadCrumb[] _virtualSegments = [];
+    private BreadCrumb[] _autoVirtualSegments = [];
     private readonly Dictionary<string, List<Modifier>> _modifiers = new ();
+    private readonly HashSet<string> _virtualSegmentQueryParams = [];
     private string _lastNormalizedUri;
     private readonly NavigationManager _navigationManager;
 
@@ -75,7 +77,35 @@ public class BreadCrumbService
                 .ToArray();
         }
 
+        _autoVirtualSegments = BuildAutoVirtualSegments(navigationManager.Uri);
+
         ChangeEvent?.Invoke(s, EventArgs.Empty);
+    }
+
+    private BreadCrumb[] BuildAutoVirtualSegments(string uri)
+    {
+        if (_virtualSegmentQueryParams.Count == 0) return [];
+
+        var idx = uri.IndexOf('?');
+        if (idx < 0) return [];
+
+        var result = new List<BreadCrumb>();
+        foreach (var part in uri.Substring(idx + 1).Split('&'))
+        {
+            var eq = part.IndexOf('=');
+            if (eq < 0) continue;
+            var key = Uri.UnescapeDataString(part.Substring(0, eq));
+            var value = Uri.UnescapeDataString(part.Substring(eq + 1));
+            if (_virtualSegmentQueryParams.Contains(key))
+                result.Add(new BreadCrumb { Text = value, Path = null });
+        }
+        return [.. result];
+    }
+
+    public void RegisterVirtualSegmentQueryParam(string paramName)
+    {
+        if (_virtualSegmentQueryParams.Add(paramName))
+            Build(_navigationManager, this);
     }
 
     public event EventHandler<EventArgs> ChangeEvent;
@@ -84,7 +114,7 @@ public class BreadCrumbService
     {
         get
         {
-            var all = _segments.Concat(_virtualSegments).ToArray();
+            var all = _segments.Concat(_autoVirtualSegments).Concat(_virtualSegments).ToArray();
             return all.Select((path, index) =>
             {
                 var text = path.Text.Substring(0, 1).ToUpper() + path.Text.Substring(1);
