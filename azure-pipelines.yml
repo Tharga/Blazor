@@ -56,21 +56,32 @@ stages:
         versioningScheme: 'byBuildNumber'
         versionEnvVar: 'messagesPackageVersion'
 
+    - script: |
+        if exist "$(Build.ArtifactStagingDirectory)\*.nupkg" del /q "$(Build.ArtifactStagingDirectory)\*.nupkg"
+      displayName: 'Clean artifact staging directory'
+
     - task: DotNetCoreCLI@2
       displayName: 'Pack Tharga.Blazor'
       inputs:
         command: 'pack'
         packagesToPack: '**/Tharga.Blazor.csproj'
+        nobuild: true
+        configuration: 'Release'
         versioningScheme: 'off'
-        arguments: '-c Release --no-build /p:PackageVersion=$(Build.BuildNumber)'
+        buildProperties: 'PackageVersion=$(Build.BuildNumber)'
 
     - task: DotNetCoreCLI@2
       displayName: 'Pack Tharga.Team'
       inputs:
         command: 'pack'
         packagesToPack: '**/Tharga.Team.csproj'
+        nobuild: true
+        configuration: 'Release'
         versioningScheme: 'off'
-        arguments: '-c Release --no-build /p:PackageVersion=$(Build.BuildNumber)'
+        buildProperties: 'PackageVersion=$(Build.BuildNumber)'
+
+    - script: dir "$(Build.ArtifactStagingDirectory)\*.nupkg" /b
+      displayName: 'List packed nupkg files'
 
     - task: DotNetCoreCLI@2
       displayName: 'Push nuget packages locally'
