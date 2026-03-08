@@ -2,7 +2,7 @@
 @using Microsoft.Extensions.Logging
 @inject NotificationService NotificationService
 @inject IServiceProvider ServiceProvider
-<StandardButton Text="@Text" Icon="@Icon" Click="@ClickWrapper" Type="@StandardButton.EButtonType.Normal" Variant="@GetVariant()" Enabled="@Enabled" IsBusy="@_executing" BusyText="@GetBusyText()" Style="@Style" Visible="@Visible" />
+<StandardButton Text="@Text" Icon="@Icon" Click="@ClickWrapper" Type="@StandardButton.EButtonType.Normal" Variant="@GetVariant()" Enabled="@Enabled" IsBusy="@_executing" BusyText="@GetBusyText()" Style="@Style" Visible="@Visible" Size="@Size" />
 
 @code {
     private bool _executing;
@@ -33,6 +33,9 @@
 
     [Parameter]
     public Variant? Variant { get; set; }
+
+    [Parameter]
+    public ButtonSize Size { get; set; }
 
     private string GetBusyText() => BusyText ?? Text;
     private Variant GetVariant() => Variant ?? Radzen.Variant.Filled;
