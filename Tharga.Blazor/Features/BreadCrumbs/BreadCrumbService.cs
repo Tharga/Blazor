@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Tharga.Toolkit;
 
 namespace Tharga.Blazor.Features.BreadCrumbs;
@@ -6,7 +6,11 @@ namespace Tharga.Blazor.Features.BreadCrumbs;
 public class BreadCrumbService
 {
     private BreadCrumb[] _segments = [];
+    private BreadCrumb[] _virtualSegments = [];
+    private BreadCrumb[] _autoVirtualSegments = [];
     private readonly Dictionary<string, List<Modifier>> _modifiers = new ();
+    private readonly HashSet<string> _virtualSegmentQueryParams = [];
+    private string _lastNormalizedUri;
     private readonly NavigationManager _navigationManager;
 
     public BreadCrumbService(NavigationManager navigationManager)
@@ -17,8 +21,21 @@ public class BreadCrumbService
         Build(navigationManager, this);
     }
 
+    private static string NormalizeUri(string uri)
+    {
+        var idx = uri.IndexOf('?');
+        return idx >= 0 ? uri.Substring(0, idx) : uri;
+    }
+
     private void Build(NavigationManager navigationManager, object s)
     {
+        var normalizedUri = NormalizeUri(navigationManager.Uri);
+        if (normalizedUri != _lastNormalizedUri)
+        {
+            _virtualSegments = [];
+            _lastNormalizedUri = normalizedUri;
+        }
+
         var parts = navigationManager.Uri
             .Split('/')
             .Skip(3)
@@ -37,7 +54,7 @@ public class BreadCrumbService
             })
             .ToArray();
 
-        if (_modifiers.TryGetValue(navigationManager.Uri, out var modifiers))
+        if (_modifiers.TryGetValue(NormalizeUri(navigationManager.Uri), out var modifiers))
         {
             _segments = _segments.Select(x =>
                 {
@@ -48,6 +65,8 @@ public class BreadCrumbService
                             return null;
                         case Modifyer.Unlink:
                             return x with { Path = null };
+                        case Modifyer.Relink:
+                            return x with { Path = item.RelinkUrl };
                         case null:
                             return x;
                         default:
@@ -58,18 +77,48 @@ public class BreadCrumbService
                 .ToArray();
         }
 
-        //_segments = _modifier?.Invoke(_segments).ToArray() ?? _segments;
+        _autoVirtualSegments = BuildAutoVirtualSegments(navigationManager.Uri);
+
         ChangeEvent?.Invoke(s, EventArgs.Empty);
+    }
+
+    private BreadCrumb[] BuildAutoVirtualSegments(string uri)
+    {
+        if (_virtualSegmentQueryParams.Count == 0) return [];
+
+        var idx = uri.IndexOf('?');
+        if (idx < 0) return [];
+
+        var result = new List<BreadCrumb>();
+        foreach (var part in uri.Substring(idx + 1).Split('&'))
+        {
+            var eq = part.IndexOf('=');
+            if (eq < 0) continue;
+            var key = Uri.UnescapeDataString(part.Substring(0, eq));
+            var value = Uri.UnescapeDataString(part.Substring(eq + 1));
+            if (_virtualSegmentQueryParams.Contains(key))
+                result.Add(new BreadCrumb { Text = value, Path = null });
+        }
+        return [.. result];
+    }
+
+    public void RegisterVirtualSegmentQueryParam(string paramName)
+    {
+        if (_virtualSegmentQueryParams.Add(paramName))
+            Build(_navigationManager, this);
     }
 
     public event EventHandler<EventArgs> ChangeEvent;
 
-    public IEnumerable<BreadCrumb> BreadCrumbItems =>
-        _segments
-            .Select((path, index) =>
+    public IEnumerable<BreadCrumb> BreadCrumbItems
+    {
+        get
+        {
+            var all = _segments.Concat(_autoVirtualSegments).Concat(_virtualSegments).ToArray();
+            return all.Select((path, index) =>
             {
                 var text = path.Text.Substring(0, 1).ToUpper() + path.Text.Substring(1);
-                var disabled = index == _segments.Length - 1;
+                var disabled = index == all.Length - 1;
 
                 return new BreadCrumb
                 {
@@ -77,10 +126,45 @@ public class BreadCrumbService
                     Path = disabled ? null : path.Path
                 };
             });
+        }
+    }
+
+    public void AddVirtualSegment(string text, string path = null)
+    {
+        _virtualSegments = [.. _virtualSegments, new BreadCrumb { Text = text, Path = path }];
+        ChangeEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RemoveVirtualSegments()
+    {
+        if (_virtualSegments.Length == 0) return;
+        _virtualSegments = [];
+        ChangeEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RelinkSegment(string text, string url)
+    {
+        var key = NormalizeUri(_navigationManager.Uri);
+        if (_modifiers.TryGetValue(key, out var modifiers))
+        {
+            var item = modifiers.FirstOrDefault(x => x.Text == text);
+            if (item == null)
+            {
+                modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url });
+                Build(_navigationManager, this);
+            }
+        }
+        else
+        {
+            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url }]);
+            Build(_navigationManager, this);
+        }
+    }
 
     public void UnlinkSegment(string text)
     {
-        if (_modifiers.TryGetValue(_navigationManager.Uri, out var modifiers))
+        var key = NormalizeUri(_navigationManager.Uri);
+        if (_modifiers.TryGetValue(key, out var modifiers))
         {
             var item = modifiers.FirstOrDefault(x => x.Text == text);
             if (item == null)
@@ -91,14 +175,15 @@ public class BreadCrumbService
         }
         else
         {
-            _modifiers.Add(_navigationManager.Uri, [new Modifier { Text = text, Modifyer = Modifyer.Unlink}]);
+            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Unlink }]);
             Build(_navigationManager, this);
         }
     }
 
     public void RemoveSegment(string text)
     {
-        if (_modifiers.TryGetValue(_navigationManager.Uri, out var modifiers))
+        var key = NormalizeUri(_navigationManager.Uri);
+        if (_modifiers.TryGetValue(key, out var modifiers))
         {
             var item = modifiers.FirstOrDefault(x => x.Text == text);
             if (item == null)
@@ -109,7 +194,7 @@ public class BreadCrumbService
         }
         else
         {
-            _modifiers.Add(_navigationManager.Uri, [new Modifier { Text = text, Modifyer = Modifyer.Remove}]);
+            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Remove }]);
             Build(_navigationManager, this);
         }
     }
@@ -118,11 +203,13 @@ public class BreadCrumbService
     {
         public required string Text { get; init; }
         public required Modifyer Modifyer { get; init; }
+        public string RelinkUrl { get; init; }
     }
 
     public enum Modifyer
     {
         Remove,
-        Unlink
+        Unlink,
+        Relink
     }
 }
