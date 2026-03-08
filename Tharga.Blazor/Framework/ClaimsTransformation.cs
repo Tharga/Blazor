@@ -28,7 +28,6 @@ public class ClaimsTransformation : IClaimsTransformation
 
         if (identity.HasClaim(c => c.Type == Constants.TeamKeyCookie)) return principal;
 
-        // Get tenant/team ID from a cookie or session
         var teamKey = context?.Request.Cookies[Constants.SelectedTeamKeyCookie];
 
         var user = await _userService.GetCurrentUserAsync(principal);
@@ -43,12 +42,6 @@ public class ClaimsTransformation : IClaimsTransformation
                 identity.AddClaim(new Claim(ClaimTypes.Role, Roles.TeamUser));
                 identity.AddClaim(new Claim(ClaimTypes.Role, $"Team{member.AccessLevel}"));
             }
-        }
-
-        //TODO: When we use Entra, there should be a developer role to assign there.
-        if (identity.GetEmail()?.Contains("daniel.bohlin", StringComparison.InvariantCultureIgnoreCase) ?? false)
-        {
-            identity.AddClaim(new Claim(ClaimTypes.Role, Roles.Developer));
         }
 
         return principal;

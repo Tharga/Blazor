@@ -15,12 +15,12 @@
         {
             <RadzenLink Text="Create Team" Path="/team" />
         }
-        else if (_teams.Length == 1)
+        else if (_teams.Length == 1 && SelectedTeam != null)
         {
             <RadzenImage Path="@SelectedTeam.Icon" class="rz-gravatar" Visible="@(!string.IsNullOrEmpty(SelectedTeam.Icon))" />
             <span>@SelectedTeam.Name</span>
         }
-        else if (_teams.Length > 1)
+        else if (_teams.Length > 1 && SelectedTeam != null)
         {
             <RadzenImage Path="@SelectedTeam.Icon" class="rz-gravatar" Visible="@(!string.IsNullOrEmpty(SelectedTeam.Icon))" />
             <RadzenDropDown @bind-Value=@SelectedTeam Data="@(_teams.OrderBy(f => f.Name))" TextProperty="Name" />

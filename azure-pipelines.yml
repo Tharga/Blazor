@@ -61,14 +61,16 @@ stages:
       inputs:
         command: 'pack'
         packagesToPack: '**/Tharga.Blazor.csproj'
-        versioningScheme: 'byBuildNumber'
+        versioningScheme: 'off'
+        arguments: '-c Release --no-build /p:PackageVersion=$(Build.BuildNumber)'
 
     - task: DotNetCoreCLI@2
       displayName: 'Pack Tharga.Team'
       inputs:
         command: 'pack'
         packagesToPack: '**/Tharga.Team.csproj'
-        versioningScheme: 'byBuildNumber'
+        versioningScheme: 'off'
+        arguments: '-c Release --no-build /p:PackageVersion=$(Build.BuildNumber)'
 
     - task: DotNetCoreCLI@2
       displayName: 'Push nuget packages locally'

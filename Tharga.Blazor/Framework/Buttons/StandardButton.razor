@@ -1,4 +1,4 @@
-﻿<RadzenButton Text="@Text" Click="@Click" Icon="@Icon" Disabled="@(!Enabled)" Variant="@GetVariant()" Visible="@Visible" ButtonStyle="@GetButtonStyle()" IsBusy="@IsBusy" BusyText="@BusyText" title="@ToolTip" Style="@Style" Shade="@GetShade()" />
+﻿<RadzenButton Text="@Text" Click="@Click" Icon="@Icon" Disabled="@(!Enabled)" Variant="@GetVariant()" Visible="@Visible" ButtonStyle="@GetButtonStyle()" IsBusy="@IsBusy" BusyText="@BusyText" title="@ToolTip" Style="@Style" Shade="@GetShade()" Size="@Size" />
 
 @code {
     [Parameter]
@@ -39,6 +39,9 @@
 
     [Parameter]
     public string Style { get; set; }
+
+    [Parameter]
+    public ButtonSize Size { get; set; }
 
     public enum EButtonType
     {
