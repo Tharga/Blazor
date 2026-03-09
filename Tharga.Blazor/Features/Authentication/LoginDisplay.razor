@@ -10,8 +10,8 @@
                     <RadzenGravatar Email="@_email" AlternateText="@_email" />
                 </Template>
                 <ChildContent>
-                    <RadzenProfileMenuItem Text="User" Icon="account_circle"/>
-                    <RadzenProfileMenuItem Text="Team" Icon="group" />
+                    <RadzenProfileMenuItem Text="User" Icon="account_circle" Visible="@ShowProfile" />
+                    <RadzenProfileMenuItem Text="Team" Icon="group" Visible="@ShowTeam" />
                     <hr style="margin: 0;" />
                     <RadzenProfileMenuItem Text="Logout" Icon="logout" />
                 </ChildContent>
@@ -26,6 +26,12 @@
 
 @code {
     private string _email;
+
+    [Parameter]
+    public bool ShowProfile { get; set; } = true;
+
+    [Parameter]
+    public bool ShowTeam { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,7 +64,6 @@
 
     private Task Login()
     {
-        var u = NavigationManager.Uri.Replace(NavigationManager.BaseUri, "");
         NavigationManager.NavigateTo("/login", forceLoad: true);
         return Task.CompletedTask;
     }
