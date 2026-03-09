@@ -1,6 +1,8 @@
-﻿@using Tharga.Toolkit
+﻿@using Microsoft.Extensions.Options
+@using Tharga.Toolkit
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IOptions<ThargaBlazorOptions> ThargaBlazorOptions;
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -10,8 +12,8 @@
                     <RadzenGravatar Email="@_email" AlternateText="@_email" />
                 </Template>
                 <ChildContent>
-                    <RadzenProfileMenuItem Text="User" Icon="account_circle" Visible="@ShowProfile" />
-                    <RadzenProfileMenuItem Text="Team" Icon="group" Visible="@ShowTeam" />
+                    <RadzenProfileMenuItem Text="User" Icon="account_circle" />
+                    <RadzenProfileMenuItem Text="Team" Icon="group" Visible="@GetShowTeam()" />
                     <hr style="margin: 0;" />
                     <RadzenProfileMenuItem Text="Logout" Icon="logout" />
                 </ChildContent>
@@ -26,15 +28,15 @@
 
 @code {
     private string _email;
+    private bool _showTeamDefault;
 
     [Parameter]
-    public bool ShowProfile { get; set; } = true;
-
-    [Parameter]
-    public bool ShowTeam { get; set; } = true;
+    public bool? ShowTeam { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        _showTeamDefault = ThargaBlazorOptions.Value._teamService != null;
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated ?? false)
         {
@@ -73,4 +75,6 @@
         NavigationManager.NavigateTo("/logout", forceLoad: true);
         return Task.CompletedTask;
     }
+
+    private bool GetShowTeam() => ShowTeam ?? _showTeamDefault;
 }

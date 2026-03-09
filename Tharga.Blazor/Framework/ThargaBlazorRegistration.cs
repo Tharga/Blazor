@@ -20,7 +20,6 @@ public static class ThargaBlazorRegistration
 
         if (o._teamService != null)
         {
-            services.AddThargaTeam();
             services.AddScoped<ITeamStateService, TeamStateService>();
 
             services.AddScoped(o._teamService);
