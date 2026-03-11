@@ -80,6 +80,16 @@ stages:
         versioningScheme: 'off'
         buildProperties: 'PackageVersion=$(Build.BuildNumber)'
 
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack Tharga.Team.MongoDB'
+      inputs:
+        command: 'pack'
+        packagesToPack: '**/Tharga.Team.MongoDB.csproj'
+        nobuild: true
+        configuration: 'Release'
+        versioningScheme: 'off'
+        buildProperties: 'PackageVersion=$(Build.BuildNumber)'
+
     - script: dir "$(Build.ArtifactStagingDirectory)\*.nupkg" /b
       displayName: 'List packed nupkg files'
 
