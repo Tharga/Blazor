@@ -44,14 +44,14 @@ stages:
       displayName: 'Restore nuget packages'
       inputs:
         command: 'restore'
-        projects: '**/Tharga.Blazor*.csproj'
+        projects: '**/*.csproj'
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
       displayName: 'Build'
       inputs:
         command: 'build'
-        projects: '**/Tharga.Blazor*.csproj'
+        projects: '**/*.csproj'
         arguments: '-c Release --no-restore /p:Version=$(Build.BuildNumber)'
         versioningScheme: 'byBuildNumber'
         versionEnvVar: 'messagesPackageVersion'
