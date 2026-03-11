@@ -1,14 +1,27 @@
 ﻿using System.Collections.Concurrent;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Components.Authorization;
 using Tharga.Toolkit;
 
 namespace Tharga.Team;
 
 public abstract class UserServiceBase : IUserService
 {
+    protected readonly AuthenticationStateProvider _authenticationStateProvider;
+
     private static readonly ConcurrentDictionary<string, IUser> _userCache = new();
 
-    protected abstract Task<ClaimsPrincipal> GetClaims(ClaimsPrincipal claimsPrincipal);
+    protected UserServiceBase(AuthenticationStateProvider authenticationStateProvider)
+    {
+        _authenticationStateProvider = authenticationStateProvider;
+    }
+
+    protected virtual async Task<ClaimsPrincipal> GetClaims(ClaimsPrincipal claimsPrincipal)
+    {
+        claimsPrincipal ??= (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+        return claimsPrincipal;
+    }
+
     protected abstract Task<IUser> GetUserAsync(ClaimsPrincipal claimsPrincipal);
     protected abstract IAsyncEnumerable<IUser> GetAllAsync();
 

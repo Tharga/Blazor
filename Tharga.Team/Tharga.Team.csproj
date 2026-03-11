@@ -6,7 +6,7 @@
     <Authors>Daniel Bohlin</Authors>
     <Company>Thargelion AB</Company>
     <Product>Tharga Blazor</Product>
-    <Description>Common features for blazor and radzen. Multitennant and more.</Description>
+    <Description>Team features for Tharga Blazor.</Description>
     <PackageIconUrl>https://thargelion.se/wp-content/uploads/2025/11/Thargelion-White-Icon-150.png</PackageIconUrl>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -29,5 +29,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
     <PackageReference Include="Tharga.Toolkit" Version="1.15.18" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.13" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.3" />
   </ItemGroup>
 </Project>

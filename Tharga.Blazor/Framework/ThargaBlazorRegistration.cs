@@ -20,7 +20,6 @@ public static class ThargaBlazorRegistration
 
         if (o._teamService != null)
         {
-            services.AddThargaTeam();
             services.AddScoped<ITeamStateService, TeamStateService>();
 
             services.AddScoped(o._teamService);
@@ -36,6 +35,12 @@ public static class ThargaBlazorRegistration
             }
 
             services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
+        }
+
+        if (o._apiKeyService != null)
+        {
+            services.AddScoped(o._apiKeyService);
+            services.AddScoped(typeof(IApiKeyAdministrationService), sp => sp.GetRequiredService(o._apiKeyService));
         }
 
         services.AddSingleton(Options.Create(o));

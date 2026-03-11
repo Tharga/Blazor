@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tharga.Team", "Tharga.Team\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tharga.Blazor.Tests", "Tharga.Blazor.Tests\Tharga.Blazor.Tests.csproj", "{7879DC17-62BB-0DF5-17D9-A22334013724}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tharga.Team.MongoDB", "Tharga.Team.MongoDB\Tharga.Team.MongoDB.csproj", "{AF2E98FD-EA79-3404-E6DF-3FA89CB04BC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{7879DC17-62BB-0DF5-17D9-A22334013724}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7879DC17-62BB-0DF5-17D9-A22334013724}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7879DC17-62BB-0DF5-17D9-A22334013724}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF2E98FD-EA79-3404-E6DF-3FA89CB04BC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF2E98FD-EA79-3404-E6DF-3FA89CB04BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF2E98FD-EA79-3404-E6DF-3FA89CB04BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF2E98FD-EA79-3404-E6DF-3FA89CB04BC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
