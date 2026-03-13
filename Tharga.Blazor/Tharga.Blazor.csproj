@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.0</Version>
+    <Version>1.2.7</Version>
     <Authors>Daniel Bohlin</Authors>
     <Company>Thargelion AB</Company>
     <Product>Tharga Blazor</Product>
@@ -31,6 +31,7 @@
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Radzen.Blazor" Version="9.0.4" />
     <PackageReference Include="System.Linq.Async" Version="7.0.0" />
+    <PackageReference Include="Tharga.Api" Version="0.0.1-pre.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tharga.Team\Tharga.Team.csproj" />

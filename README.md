@@ -14,7 +14,7 @@ Razor component library (targets .NET 9.0 and 10.0) built on [Radzen.Blazor](htt
 
 - **Breadcrumb navigation** - Automatic breadcrumb generation via `BreadCrumbService` with support for virtual segments and URL query parameter-driven breadcrumbs.
 - **Team management UI** - Ready-to-use components for selecting, creating, and managing teams and members (`TeamSelector`, `TeamComponent`, invite dialogs).
-- **API key management** - `ApiKeyView` component for administering API keys scoped to teams.
+- **API key management** - `ApiKeyView` component for administering API keys scoped to teams (uses `IApiKeyAdministrationService` from [Tharga.Api](https://www.nuget.org/packages/Tharga.Api)).
 - **Reusable buttons** - `ActionButton`, `CopyButton`, `CancelButton`, and `StandardButton` with built-in busy states, variants, and error handling.
 - **UI utilities** - `CustomErrorBoundary`, `ExpandableCard`, `DateTimeView`, `TimeSpanView`, `Loading`, `LoginDisplay`, and more.
 
@@ -26,6 +26,10 @@ Base class library providing the domain models and service abstractions used by 
 - **Data models** - `ITeam`, `ITeamMember`, `IUser`, and `AccessLevel` enum (Owner, Administrator, User, Viewer).
 - **Base classes** - `TeamServiceBase` and `UserServiceBase` for implementing your own backend.
 
+## Related packages
+
+- [Tharga.Api](https://www.nuget.org/packages/Tharga.Api) - API-key authentication handler, controller registration, and OpenAPI/Swagger setup. Tharga.Blazor depends on this package for the `IApiKey` and `IApiKeyAdministrationService` interfaces.
+
 ## Getting started
 
 Register the services in your `Program.cs`:
@@ -36,4 +40,13 @@ builder.Services.AddThargaBlazor(o =>
     o.TeamServiceType = typeof(MyTeamService);
     o.UserServiceType = typeof(MyUserService);
 });
+```
+
+For API key authentication support, also register Tharga.Api:
+
+```csharp
+builder.Services.AddThargaControllers();
+builder.Services.AddAuthentication()
+    .AddThargaApiKeyAuthentication();
+builder.Services.AddThargaApiKeys();
 ```
