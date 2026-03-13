@@ -1,4 +1,5 @@
-﻿using Tharga.Team;
+﻿using Tharga.Api;
+using Tharga.Team;
 
 namespace Tharga.Blazor.Framework;
 

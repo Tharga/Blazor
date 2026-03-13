@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Tharga.Api;
 using Tharga.Blazor.Features.BreadCrumbs;
 using Tharga.Blazor.Features.Team;
 using Tharga.Team;

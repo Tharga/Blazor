@@ -1,4 +1,4 @@
-﻿@using Microsoft.JSInterop
+﻿@* @using Microsoft.JSInterop
 @using Tharga.Blazor.Features.Team
 @using Tharga.Team
 @inject ITeamStateService TeamStateService
@@ -7,7 +7,11 @@
 @inject DialogService DialogService
 @inject NotificationService NotificationService
 
-@if (_keys == null)
+@if (_selectedTeam == null)
+{
+    <RadzenText>No team selected.</RadzenText>
+}
+else if (_keys == null)
 {
     <Loading />
 }
@@ -88,3 +92,4 @@ else
         await ReloadData();
     }
 }
+ *@
