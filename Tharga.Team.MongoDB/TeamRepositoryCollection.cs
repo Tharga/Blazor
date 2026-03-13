@@ -19,6 +19,10 @@ internal class TeamRepositoryCollection<TTeamEntity, TMember> : DiskRepositoryCo
 
     public override IEnumerable<CreateIndexModel<TTeamEntity>> Indices =>
     [
-        new(Builders<TTeamEntity>.IndexKeys.Ascending(x => x.Key), new CreateIndexOptions { Unique = true, Name = "Key" })
+        new(Builders<TTeamEntity>.IndexKeys.Ascending(x => x.Key), new CreateIndexOptions { Unique = true, Name = "Key" }),
+        new(Builders<TTeamEntity>.IndexKeys.Combine(
+            Builders<TTeamEntity>.IndexKeys.Ascending(x => x.Id),
+            Builders<TTeamEntity>.IndexKeys.Ascending("Members.Key")
+        ), new CreateIndexOptions { Unique = true, Name = "UniqueTeamMemberKey" })
     ];
 }

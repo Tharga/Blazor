@@ -193,6 +193,10 @@ else
 
     private async Task CopyInvitationLink(ITeam<TMember> team, string userKey)
     {
+        var members = team.Members.Where(x => x.Key == userKey).ToArray();
+        if (!members.Any()) throw new InvalidOperationException($"No member matches the user key '{userKey}' in team '{team.Key}'.");
+        if (members.Length > 1) throw new InvalidOperationException($"Members {string.Join(",", members.Select(x => x.Name))} matches the user key '{userKey}' in team '{team.Key}'.");
+
         var member = team.Members.Single(x => x.Key == userKey);
         var baseUri = NavigationManager.BaseUri;
 
