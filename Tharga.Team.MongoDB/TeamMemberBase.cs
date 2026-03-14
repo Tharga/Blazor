@@ -16,4 +16,7 @@ public abstract record TeamMemberBase : ITeamMember
 
     [BsonRepresentation(BsonType.String)]
     public AccessLevel AccessLevel { get; init; }
+
+    [BsonIgnoreIfNull]
+    public string[] TenantRoles { get; init; }
 }
