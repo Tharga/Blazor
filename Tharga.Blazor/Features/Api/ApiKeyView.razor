@@ -1,9 +1,11 @@
-﻿@using Microsoft.JSInterop
+@using Microsoft.Extensions.Options
+@using Microsoft.JSInterop
 @using Tharga.Api
 @using Tharga.Blazor.Features.Team
 @using Tharga.Team
 @inject ITeamStateService TeamStateService
-@inject IApiKeyAdministrationService ApiKeyAdministrationService
+@inject IApiKeyManagementService ApiKeyManagementService
+@inject IOptions<ApiKeyOptions> ApiKeyOptionsAccessor
 @inject IJSRuntime Js
 @inject DialogService DialogService
 @inject NotificationService NotificationService
@@ -22,62 +24,169 @@ else
         <Columns>
             <RadzenDataGridColumn Title="Name" Property="@nameof(ApiKeyModel.Name)" Width="180px" />
             <RadzenDataGridColumn Title="Key" Property="@nameof(ApiKeyModel.VisibleKey)" />
-            <RadzenDataGridColumn Width="180px">
+            @if (_options.AdvancedMode)
+            {
+                <RadzenDataGridColumn Title="Access Level" Width="130px">
+                    <Template>
+                        @context.AccessLevel
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Roles" Width="150px">
+                    <Template>
+                        @string.Join(", ", context?.Roles ?? Array.Empty<string>())
+                    </Template>
+                </RadzenDataGridColumn>
+            }
+            <RadzenDataGridColumn Title="Expiry" Width="130px">
                 <Template>
-                    <RadzenButton icon="visibility" Click="@(_ => context.VisibleKey = context.ApiKey)" Visible="@(!string.IsNullOrEmpty(context.ApiKey) && context.VisibleKey == _apiKeyMask)" />
-                    <RadzenButton icon="visibility_off" Click="@(_ => context.VisibleKey = _apiKeyMask)" Visible="@(!string.IsNullOrEmpty(context.ApiKey) && context.VisibleKey != _apiKeyMask)" />
-                    <RadzenButton Icon="content_copy" Click="@(_ => CopyToClipboard(context))" Visible="@(!string.IsNullOrEmpty(context.ApiKey))" />
-                    <RadzenButton icon="lock" Click="@(_ => LockKeyAsync(context))" Visible="@(!string.IsNullOrEmpty(context.ApiKey))" />
+                    @if (context.ExpiryDate.HasValue)
+                    {
+                        <span style="@(context.IsExpired ? "color: red" : "")">
+                            <DateTimeView Date="@context.ExpiryDate" />
+                        </span>
+                    }
+                    else
+                    {
+                        <RadzenText>No expiry</RadzenText>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Width="@(_options.AdvancedMode ? "220px" : "180px")">
+                <Template>
+                    <RadzenButton Icon="visibility" Click="@(_ => context.VisibleKey = context.ApiKey)" Visible="@(!string.IsNullOrEmpty(context.ApiKey) && context.VisibleKey == _apiKeyMask)" />
+                    <RadzenButton Icon="visibility_off" Click="@(_ => context.VisibleKey = _apiKeyMask)" Visible="@(!string.IsNullOrEmpty(context.ApiKey) && context.VisibleKey != _apiKeyMask)" />
+                    <RadzenButton Icon="content_copy" Click="@(_ => CopyToClipboard(context))" Visible="@(IsKeyVisible(context))" />
+                    <RadzenButton Icon="lock" Click="@(_ => LockKeyAsync(context))" Visible="@(!string.IsNullOrEmpty(context.ApiKey))" />
                     <RadzenButton Icon="refresh" Click="@(_ => RefreshAsync(context))" />
+                    <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Click="@(_ => DeleteAsync(context))" Visible="@(_options.AdvancedMode)" />
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
+
+    @if (_options.AdvancedMode)
+    {
+        <RadzenCard class="rz-mt-4">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="1rem">
+                <RadzenStack Gap="0.25rem">
+                    <RadzenLabel Text="Name" />
+                    <RadzenTextBox Value="@_newName" @oninput="@(e => _newName = e.Value?.ToString() ?? "")" Placeholder="Key name" />
+                </RadzenStack>
+                <RadzenStack Gap="0.25rem">
+                    <RadzenLabel Text="Access Level" />
+                    <RadzenDropDown TValue="AccessLevel" @bind-Value="_newAccessLevel" Data="@_accessLevels" />
+                </RadzenStack>
+                <RadzenStack Gap="0.25rem">
+                    <RadzenLabel Text="Expiry Date" />
+                    <RadzenDatePicker @bind-Value="_newExpiryDate" DateFormat="yyyy-MM-dd"
+                                      AllowClear="@(!_options.MaxExpiryDays.HasValue)"
+                                      Min="@DateTime.UtcNow.Date"
+                                      Max="@(_options.MaxExpiryDays.HasValue ? DateTime.UtcNow.AddDays(_options.MaxExpiryDays.Value).Date : DateTime.MaxValue)" />
+                </RadzenStack>
+                <RadzenButton Text="Create" Icon="add" Click="@CreateAsync"
+                              Disabled="@string.IsNullOrWhiteSpace(_newName)" />
+            </RadzenStack>
+        </RadzenCard>
+    }
 }
 
 @code {
     private ITeam _selectedTeam;
     private ApiKeyModel[] _keys;
+    private ApiKeyOptions _options;
     private readonly string _apiKeyMask = "**********";
+    private readonly AccessLevel[] _accessLevels = Enum.GetValues<AccessLevel>().Where(x => x != AccessLevel.Owner).ToArray();
+
+    private string _newName = "";
+    private AccessLevel _newAccessLevel = AccessLevel.User;
+    private DateTime? _newExpiryDate;
 
     protected override async Task OnInitializedAsync()
     {
+        _options = ApiKeyOptionsAccessor.Value;
+        _newExpiryDate = _options.MaxExpiryDays.HasValue
+            ? DateTime.UtcNow.AddDays(_options.MaxExpiryDays.Value).Date
+            : null;
         _selectedTeam = await TeamStateService.GetSelectedTeamAsync();
-
         await ReloadData();
-
         await base.OnInitializedAsync();
-    }
-
-    private async Task RefreshAsync(ApiKeyModel context)
-    {
-        var result = await DialogService.Confirm($"The {context.Name} key will be regenerated.", "Confirm regenerate api key");
-        if (result != true) return;
-
-        await ApiKeyAdministrationService.RefreshKeyAsync(_selectedTeam.Key, context.Key);
-        await ReloadData();
     }
 
     private async Task ReloadData()
     {
         if (_selectedTeam?.Key == null) return;
 
-        var keys = await ApiKeyAdministrationService.GetKeysAsync(_selectedTeam.Key).ToArrayAsync();
+        var keys = await ApiKeyManagementService.GetKeysAsync(_selectedTeam.Key).ToArrayAsync();
         _keys = keys
-            .Select(x => new ApiKeyModel
+            .Select(x =>
+            {
+                var entity = x as ApiKeyEntity;
+                return new ApiKeyModel
                 {
                     Key = x.Key,
                     Name = x.Name,
                     ApiKey = x.ApiKey,
-                    VisibleKey = _apiKeyMask
-                }).ToArray();
+                    VisibleKey = _apiKeyMask,
+                    AccessLevel = entity?.AccessLevel ?? AccessLevel.Administrator,
+                    Roles = entity?.Roles,
+                    ExpiryDate = entity?.ExpiryDate,
+                    CreatedAt = entity?.CreatedAt,
+                };
+            }).ToArray();
 
         StateHasChanged();
     }
 
+    private async Task CreateAsync()
+    {
+        try
+        {
+            var created = await ApiKeyManagementService.CreateKeyAsync(_selectedTeam.Key, _newName, _newAccessLevel, null, _newExpiryDate);
+            _newName = "";
+            _newAccessLevel = AccessLevel.User;
+            _newExpiryDate = _options.MaxExpiryDays.HasValue
+                ? DateTime.UtcNow.AddDays(_options.MaxExpiryDays.Value).Date
+                : null;
+            await ReloadData();
+            ShowKeyOnce(created);
+            NotificationService.Notify(NotificationSeverity.Success, "API key created");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Failed to create key", ex.Message);
+        }
+    }
+
+    private async Task RefreshAsync(ApiKeyModel context)
+    {
+        var result = await DialogService.Confirm($"The {context.Name} key will be regenerated.", "Confirm regenerate API key");
+        if (result != true) return;
+
+        var refreshed = await ApiKeyManagementService.RefreshKeyAsync(_selectedTeam.Key, context.Key);
+        await ReloadData();
+        ShowKeyOnce(refreshed);
+    }
+
+    private void ShowKeyOnce(IApiKey key)
+    {
+        if (key == null || string.IsNullOrEmpty(key.ApiKey)) return;
+        var model = _keys?.FirstOrDefault(k => k.Key == key.Key);
+        if (model != null)
+        {
+            model.VisibleKey = key.ApiKey;
+        }
+        StateHasChanged();
+    }
+
+    private bool IsKeyVisible(ApiKeyModel context)
+    {
+        return !string.IsNullOrEmpty(context.VisibleKey) && context.VisibleKey != _apiKeyMask;
+    }
+
     private async Task CopyToClipboard(ApiKeyModel context)
     {
-        await Js.InvokeVoidAsync("clipboard.copyText", context.ApiKey);
+        var keyToCopy = IsKeyVisible(context) ? context.VisibleKey : context.ApiKey;
+        await Js.InvokeVoidAsync("clipboard.copyText", keyToCopy);
         NotificationService.Notify(new NotificationMessage
         {
             Summary = $"The {context.Name} key has been copied to the clipboard."
@@ -86,10 +195,27 @@ else
 
     private async Task LockKeyAsync(ApiKeyModel context)
     {
-        var result = await DialogService.Confirm($"The {context.Name} key will be locked. After that, it cannot be retrieved.", "Confirm regenerate api key");
+        var result = await DialogService.Confirm($"The {context.Name} key will be locked. After that, it cannot be retrieved.", "Confirm lock API key");
         if (result != true) return;
 
-        await ApiKeyAdministrationService.LockKeyAsync(context.Key);
+        await ApiKeyManagementService.LockKeyAsync(context.Key);
         await ReloadData();
+    }
+
+    private async Task DeleteAsync(ApiKeyModel context)
+    {
+        var result = await DialogService.Confirm($"Delete API key '{context.Name}'? This cannot be undone.", "Confirm delete");
+        if (result != true) return;
+
+        try
+        {
+            await ApiKeyManagementService.DeleteKeyAsync(context.Key);
+            await ReloadData();
+            NotificationService.Notify(NotificationSeverity.Success, "API key deleted");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Failed to delete key", ex.Message);
+        }
     }
 }
