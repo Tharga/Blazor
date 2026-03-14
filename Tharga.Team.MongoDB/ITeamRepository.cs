@@ -1,3 +1,4 @@
+using Tharga.Api;
 ﻿using Tharga.MongoDB;
 
 namespace Tharga.Team.MongoDB;

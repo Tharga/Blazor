@@ -30,6 +30,9 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
     <PackageReference Include="Tharga.Toolkit" Version="1.15.18" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Api\Tharga.Api\Tharga.Api.csproj" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.13" />
   </ItemGroup>

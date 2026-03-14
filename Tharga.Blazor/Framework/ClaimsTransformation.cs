@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Tharga.Api;
 using Tharga.Team;
 using Tharga.Toolkit;
 
@@ -35,12 +36,14 @@ public class ClaimsTransformation : IClaimsTransformation
         if (!string.IsNullOrEmpty(teamKey))
         {
             identity.AddClaim(new Claim(Constants.TeamKeyCookie, teamKey));
+            identity.AddClaim(new Claim(TeamClaimTypes.TeamKey, teamKey));
 
             var member = await _teamService.GetTeamMemberAsync(teamKey, user?.Key);
             if (member != null)
             {
-                identity.AddClaim(new Claim(ClaimTypes.Role, Roles.TeamUser));
+                identity.AddClaim(new Claim(ClaimTypes.Role, Roles.TeamMember));
                 identity.AddClaim(new Claim(ClaimTypes.Role, $"Team{member.AccessLevel}"));
+                identity.AddClaim(new Claim(TeamClaimTypes.AccessLevel, member.AccessLevel.ToString()));
             }
         }
 

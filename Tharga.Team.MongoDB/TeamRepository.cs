@@ -1,3 +1,4 @@
+using Tharga.Api;
 ﻿using MongoDB.Driver;
 
 namespace Tharga.Team.MongoDB;

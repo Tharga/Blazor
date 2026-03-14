@@ -1,4 +1,6 @@
-﻿namespace Tharga.Team;
+﻿using Tharga.Api;
+
+namespace Tharga.Team;
 
 public interface ITeamMember
 {
