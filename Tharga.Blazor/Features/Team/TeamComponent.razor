@@ -70,7 +70,7 @@ else
                                             }
                                         </Template>
                                     </RadzenDataGridColumn>
-                                    @if (_showTenantRoles)
+                                    @if (_showMemberRoles)
                                     {
                                         <RadzenDataGridColumn Title="Roles" Width="200px">
                                             <Template>
@@ -89,9 +89,32 @@ else
                                                 }
                                             </Template>
                                         </RadzenDataGridColumn>
+                                    }
+                                    @if (_showScopeOverrides)
+                                    {
+                                        <RadzenDataGridColumn Title="Scope Overrides" Width="200px">
+                                            <Template>
+                                                @if (_canChangeRole && _user.Key != context.Key && context.AccessLevel != AccessLevel.Owner)
+                                                {
+                                                    <RadzenDropDown TValue="IEnumerable<string>"
+                                                                    Value="@(context.ScopeOverrides ?? Array.Empty<string>())"
+                                                                    ValueChanged="@(scopes => ChangeScopeOverrides(team, context.Key, scopes))"
+                                                                    Data="@_allScopeNames"
+                                                                    Multiple="true"
+                                                                    Placeholder="Add scopes..." />
+                                                }
+                                                else
+                                                {
+                                                    <RadzenText>@(string.Join(", ", context.ScopeOverrides ?? Array.Empty<string>()))</RadzenText>
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    }
+                                    @if (_showMemberRoles || _showScopeOverrides)
+                                    {
                                         <RadzenDataGridColumn Title="" Width="40px">
                                             <Template>
-                                                <span title="@GetEffectiveScopesText(context)">
+                                                <span title="@GetEffectiveScopesWithOriginText(context)">
                                                     <RadzenIcon Icon="info" Style="cursor: help;" />
                                                 </span>
                                             </Template>
@@ -144,12 +167,14 @@ else
     private IUser[] _users;
     private ITeam _selectedTeam;
     private IUser _user;
-    private bool _showTenantRoles;
+    private bool _showMemberRoles;
+    private bool _showScopeOverrides;
     private string[] _availableRoles = Array.Empty<string>();
     private bool _canManage;
     private bool _canInvite;
     private bool _canRemove;
     private bool _canChangeRole;
+    private string[] _allScopeNames = Array.Empty<string>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -159,9 +184,12 @@ else
         _canRemove = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRemove) ?? false;
         _canChangeRole = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRole) ?? false;
 
-        _showTenantRoles = BlazorOptions.Value.ShowTenantRoles;
-        if (_showTenantRoles)
+        _showMemberRoles = BlazorOptions.Value.ShowMemberRoles;
+        _showScopeOverrides = BlazorOptions.Value.ShowScopeOverrides;
+        if (_showMemberRoles)
             _availableRoles = TenantRoleRegistry.All.Select(r => r.Name).ToArray();
+        if (_showMemberRoles || _showScopeOverrides)
+            _allScopeNames = ScopeRegistry.All.Select(s => s.Name).ToArray();
 
         _users = await UserService.GetAsync().ToArrayAsync();
         _user = await UserService.GetCurrentUserAsync();
@@ -171,10 +199,22 @@ else
         await base.OnInitializedAsync();
     }
 
-    private string GetEffectiveScopesText(TMember member)
+    private string GetEffectiveScopesWithOriginText(TMember member)
     {
-        var scopes = ScopeRegistry.GetEffectiveScopes(member.AccessLevel, member.TenantRoles);
-        return string.Join("\n", scopes);
+        var accessLevelScopes = ScopeRegistry.GetScopesForAccessLevel(member.AccessLevel);
+        var roleScopes = TenantRoleRegistry.GetScopesForRoles(member.TenantRoles ?? Array.Empty<string>());
+        var overrides = member.ScopeOverrides ?? Array.Empty<string>();
+
+        var lines = new List<string>();
+        var allScopes = ScopeRegistry.GetEffectiveScopes(member.AccessLevel, member.TenantRoles, member.ScopeOverrides);
+        foreach (var scope in allScopes)
+        {
+            var origin = overrides.Contains(scope) ? "override"
+                : roleScopes.Contains(scope) ? "role"
+                : "access level";
+            lines.Add($"{scope} ({origin})");
+        }
+        return string.Join("\n", lines);
     }
 
     private async Task ChangeTenantRoles(ITeam<TMember> team, string userKey, IEnumerable<string> roles)
@@ -183,6 +223,15 @@ else
         var member = team.Members.Single(x => x.Key == (user?.Key ?? userKey));
 
         await TeamManagementService.SetMemberTenantRolesAsync(team.Key, member.Key, roles.ToArray());
+        await ReloadTeams();
+    }
+
+    private async Task ChangeScopeOverrides(ITeam<TMember> team, string userKey, IEnumerable<string> scopes)
+    {
+        var user = _users.FirstOrDefault(x => x.Key == userKey || x.Identity == userKey);
+        var member = team.Members.Single(x => x.Key == (user?.Key ?? userKey));
+
+        await TeamManagementService.SetMemberScopeOverridesAsync(team.Key, member.Key, scopes.ToArray());
         await ReloadTeams();
     }
 

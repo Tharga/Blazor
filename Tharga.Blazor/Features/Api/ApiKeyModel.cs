@@ -10,6 +10,7 @@ public record ApiKeyModel
     public string VisibleKey { get; set; }
     public AccessLevel AccessLevel { get; init; }
     public string[] Roles { get; init; }
+    public string[] ScopeOverrides { get; init; }
     public DateTime? ExpiryDate { get; init; }
     public DateTime? CreatedAt { get; init; }
     public bool IsExpired => ExpiryDate.HasValue && ExpiryDate < DateTime.UtcNow;

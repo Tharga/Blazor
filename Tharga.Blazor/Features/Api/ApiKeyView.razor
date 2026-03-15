@@ -148,6 +148,7 @@ else
                     VisibleKey = _apiKeyMask,
                     AccessLevel = entity?.AccessLevel ?? AccessLevel.Administrator,
                     Roles = entity?.Roles,
+                    ScopeOverrides = entity?.ScopeOverrides,
                     ExpiryDate = entity?.ExpiryDate,
                     CreatedAt = entity?.CreatedAt,
                 };
@@ -199,8 +200,19 @@ else
 
     private string GetKeyScopesText(ApiKeyModel context)
     {
-        var scopes = ScopeRegistry.GetEffectiveScopes(context.AccessLevel, context.Roles);
-        return string.Join("\n", scopes);
+        var accessLevelScopes = ScopeRegistry.GetScopesForAccessLevel(context.AccessLevel);
+        var overrides = context.ScopeOverrides ?? Array.Empty<string>();
+        var allScopes = ScopeRegistry.GetEffectiveScopes(context.AccessLevel, context.Roles, context.ScopeOverrides);
+
+        var lines = new List<string>();
+        foreach (var scope in allScopes)
+        {
+            var origin = overrides.Contains(scope) ? "override"
+                : accessLevelScopes.Contains(scope) ? "access level"
+                : "role";
+            lines.Add($"{scope} ({origin})");
+        }
+        return string.Join("\n", lines);
     }
 
     private bool IsKeyVisible(ApiKeyModel context)

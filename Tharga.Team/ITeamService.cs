@@ -18,6 +18,7 @@ public interface ITeamService
     Task RemoveMemberAsync(string teamKey, string userKey);
     Task SetMemberRoleAsync(string teamKey, string userKey, AccessLevel accessLevel);
     Task SetMemberTenantRolesAsync(string teamKey, string userKey, string[] tenantRoles);
+    Task SetMemberScopeOverridesAsync(string teamKey, string userKey, string[] scopeOverrides);
     Task SetInvitationResponseAsync(string teamKey, string userKey, string inviteCode, bool accept);
     Task SetMemberLastSeenAsync(string teamKey);
 }

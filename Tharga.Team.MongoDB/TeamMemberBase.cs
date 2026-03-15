@@ -19,4 +19,7 @@ public abstract record TeamMemberBase : ITeamMember
 
     [BsonIgnoreIfNull]
     public string[] TenantRoles { get; init; }
+
+    [BsonIgnoreIfNull]
+    public string[] ScopeOverrides { get; init; }
 }

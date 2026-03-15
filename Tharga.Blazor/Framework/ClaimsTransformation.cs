@@ -53,7 +53,7 @@ public class ClaimsTransformation : IClaimsTransformation
 
                 if (_scopeRegistry != null)
                 {
-                    foreach (var scope in _scopeRegistry.GetEffectiveScopes(member.AccessLevel, member.TenantRoles))
+                    foreach (var scope in _scopeRegistry.GetEffectiveScopes(member.AccessLevel, member.TenantRoles, member.ScopeOverrides))
                     {
                         identity.AddClaim(new Claim(TeamClaimTypes.Scope, scope));
                     }

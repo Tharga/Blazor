@@ -11,4 +11,5 @@ public interface ITeamMember
     public MembershipState? State { get; }
     public AccessLevel AccessLevel { get; }
     public string[] TenantRoles { get; }
+    public string[] ScopeOverrides { get; }
 }

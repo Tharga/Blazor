@@ -29,6 +29,9 @@ public interface ITeamManagementService
     [RequireScope(TeamScopes.MemberRole)]
     Task SetMemberTenantRolesAsync(string teamKey, string userKey, string[] tenantRoles);
 
+    [RequireScope(TeamScopes.MemberRole)]
+    Task SetMemberScopeOverridesAsync(string teamKey, string userKey, string[] scopeOverrides);
+
     [RequireScope(TeamScopes.Read)]
     Task SetMemberLastSeenAsync(string teamKey);
 
