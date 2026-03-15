@@ -15,6 +15,7 @@ public partial class AuditLogView : ComponentBase
     [Inject] private IJSRuntime JS { get; set; }
 
     [Parameter] public string TeamKey { get; set; }
+    [Parameter] public AuditCallerType? RestrictCallerType { get; set; }
 
     private const int ChartQueryLimit = 5000;
 
@@ -193,6 +194,7 @@ public partial class AuditLogView : ComponentBase
             Actions = actions is { Length: > 0 } ? actions : null,
             EventTypes = eventTypes is { Length: > 0 } ? eventTypes : null,
             CallerSource = callerSource,
+            CallerType = RestrictCallerType,
             CallerIdentity = callerFilter,
             MethodName = methodFilter,
             Success = success,
@@ -298,10 +300,14 @@ public partial class AuditLogView : ComponentBase
             else
             {
                 var sb = new System.Text.StringBuilder();
-                sb.AppendLine("Timestamp,Team,Caller,Source,Feature,Action,Method,Duration,Success,EventType,Scope,ScopeResult,ErrorMessage");
+                var includeTeam = string.IsNullOrEmpty(TeamKey);
+                sb.AppendLine(includeTeam
+                    ? "Timestamp,Team,Caller,Source,Feature,Action,Method,Duration,Success,EventType,Scope,ScopeResult,ErrorMessage"
+                    : "Timestamp,Caller,Source,Feature,Action,Method,Duration,Success,EventType,Scope,ScopeResult,ErrorMessage");
                 foreach (var e in exportEntries)
                 {
-                    sb.AppendLine($"{e.Timestamp:O},{Escape(e.TeamKey)},{Escape(e.CallerIdentity)},{e.CallerSource},{Escape(e.Feature)},{Escape(e.Action)},{Escape(e.MethodName)},{e.DurationMs},{e.Success},{e.EventType},{Escape(e.ScopeChecked)},{e.ScopeResult},{Escape(e.ErrorMessage)}");
+                    var team = includeTeam ? $"{Escape(e.TeamKey)}," : "";
+                    sb.AppendLine($"{e.Timestamp:O},{team}{Escape(e.CallerIdentity)},{e.CallerSource},{Escape(e.Feature)},{Escape(e.Action)},{Escape(e.MethodName)},{e.DurationMs},{e.Success},{e.EventType},{Escape(e.ScopeChecked)},{e.ScopeResult},{Escape(e.ErrorMessage)}");
                 }
                 content = sb.ToString();
                 mimeType = "text/csv";

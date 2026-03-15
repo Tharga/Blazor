@@ -121,7 +121,8 @@ else
                             <Template><DateTimeView Date="context.Timestamp" /></Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Team" Width="120px"
-                                              Filterable="false" Sortable="false">
+                                              Filterable="false" Sortable="false"
+                                              Visible="@(string.IsNullOrEmpty(TeamKey))">
                             <Template>@GetTeamName(context.TeamKey)</Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Caller" Property="@nameof(AuditEntry.CallerIdentity)" Width="180px"
