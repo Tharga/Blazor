@@ -85,6 +85,11 @@ public abstract class TeamServiceRepositoryBase<TTeamEntity, TMember> : TeamServ
         return _teamRepository.SetMemberRoleAsync(teamKey, userKey, accessLevel);
     }
 
+    protected override Task SetTeamMemberTenantRolesAsync(string teamKey, string userKey, string[] tenantRoles)
+    {
+        return _teamRepository.SetMemberTenantRolesAsync(teamKey, userKey, tenantRoles);
+    }
+
     protected override IAsyncEnumerable<ITeam> GetTeamsAsync(IUser user)
     {
         return _teamRepository.GetTeamsByUserAsync(user.Key);

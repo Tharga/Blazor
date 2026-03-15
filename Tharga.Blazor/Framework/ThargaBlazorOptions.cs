@@ -18,6 +18,12 @@ public record ThargaBlazorOptions
     public bool AutoCreateFirstTeam { get; set; } = false;
 
     /// <summary>
+    /// Show tenant role management in the team component.
+    /// Default is false.
+    /// </summary>
+    public bool ShowTenantRoles { get; set; } = false;
+
+    /// <summary>
     /// Add types for team and user services.
     /// </summary>
     /// <typeparam name="TServiceBase"></typeparam>

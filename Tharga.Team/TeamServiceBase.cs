@@ -28,6 +28,7 @@ public abstract class TeamServiceBase : ITeamService
     protected abstract Task SetTeamMemberLastSeenAsync(string teamKey, string userKey);
     protected abstract Task<ITeamMember> GetTeamMembersAsync(string teamKey, string userKey);
     protected abstract Task SetTeamMemberRoleAsync(string teamKey, string userKey, AccessLevel accessLevel);
+    protected abstract Task SetTeamMemberTenantRolesAsync(string teamKey, string userKey, string[] tenantRoles);
 
     public async IAsyncEnumerable<ITeam> GetTeamsAsync()
     {
@@ -128,6 +129,12 @@ public abstract class TeamServiceBase : ITeamService
     public async Task SetMemberRoleAsync(string teamKey, string userKey, AccessLevel accessLevel)
     {
         await SetTeamMemberRoleAsync(teamKey, userKey, accessLevel);
+        _teamMemberCache.TryRemove($"{teamKey}.{userKey}", out _);
+    }
+
+    public async Task SetMemberTenantRolesAsync(string teamKey, string userKey, string[] tenantRoles)
+    {
+        await SetTeamMemberTenantRolesAsync(teamKey, userKey, tenantRoles);
         _teamMemberCache.TryRemove($"{teamKey}.{userKey}", out _);
     }
 

@@ -6,6 +6,7 @@
 @inject ITeamStateService TeamStateService
 @inject IApiKeyManagementService ApiKeyManagementService
 @inject IOptions<ApiKeyOptions> ApiKeyOptionsAccessor
+@inject IScopeRegistry ScopeRegistry
 @inject IJSRuntime Js
 @inject DialogService DialogService
 @inject NotificationService NotificationService
@@ -49,6 +50,13 @@ else
                     {
                         <RadzenText>No expiry</RadzenText>
                     }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="" Width="40px">
+                <Template>
+                    <span title="@GetKeyScopesText(context)">
+                        <RadzenIcon Icon="info" Style="cursor: help;" />
+                    </span>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Width="@(_options.AdvancedMode ? "220px" : "180px")">
@@ -176,6 +184,12 @@ else
             model.VisibleKey = key.ApiKey;
         }
         StateHasChanged();
+    }
+
+    private string GetKeyScopesText(ApiKeyModel context)
+    {
+        var scopes = ScopeRegistry.GetEffectiveScopes(context.AccessLevel, context.Roles);
+        return string.Join("\n", scopes);
     }
 
     private bool IsKeyVisible(ApiKeyModel context)

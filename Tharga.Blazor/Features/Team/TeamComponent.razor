@@ -1,4 +1,5 @@
 ﻿@using System.Text.Json
+@using Microsoft.Extensions.Options
 @using Microsoft.JSInterop
 @using Tharga.Team
 @using Tharga.Api
@@ -11,6 +12,9 @@
 @inject DialogService DialogService
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+@inject IOptions<ThargaBlazorOptions> BlazorOptions
+@inject IScopeRegistry ScopeRegistry
+@inject ITenantRoleRegistry TenantRoleRegistry
 
 @if (_teams == null)
 {
@@ -63,6 +67,33 @@ else
                                             }
                                         </Template>
                                     </RadzenDataGridColumn>
+                                    @if (_showTenantRoles)
+                                    {
+                                        <RadzenDataGridColumn Title="Roles" Width="200px">
+                                            <Template>
+                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && _user.Key != context.Key && context.AccessLevel != AccessLevel.Owner)
+                                                {
+                                                    <RadzenDropDown TValue="IEnumerable<string>"
+                                                                    Value="@(context.TenantRoles ?? Array.Empty<string>())"
+                                                                    ValueChanged="@(roles => ChangeTenantRoles(team, context.Key, roles))"
+                                                                    Data="@_availableRoles"
+                                                                    Multiple="true"
+                                                                    Placeholder="Select roles..." />
+                                                }
+                                                else
+                                                {
+                                                    <RadzenText>@(string.Join(", ", context.TenantRoles ?? Array.Empty<string>()))</RadzenText>
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn Title="" Width="40px">
+                                            <Template>
+                                                <span title="@GetEffectiveScopesText(context)">
+                                                    <RadzenIcon Icon="info" Style="cursor: help;" />
+                                                </span>
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    }
                                     <RadzenDataGridColumn Title="Status" Property="@nameof(ITeamMember.State)"/>
                                     <RadzenDataGridColumn Title="Last Seen" Property="@nameof(ITeamMember.LastSeen)">
                                         <Template>
@@ -110,15 +141,36 @@ else
     private IUser[] _users;
     private ITeam _selectedTeam;
     private IUser _user;
+    private bool _showTenantRoles;
+    private string[] _availableRoles = Array.Empty<string>();
 
     protected override async Task OnInitializedAsync()
     {
+        _showTenantRoles = BlazorOptions.Value.ShowTenantRoles;
+        if (_showTenantRoles)
+            _availableRoles = TenantRoleRegistry.All.Select(r => r.Name).ToArray();
+
         _users = await UserService.GetAsync().ToArrayAsync();
         _user = await UserService.GetCurrentUserAsync();
 
         await ReloadTeams();
 
         await base.OnInitializedAsync();
+    }
+
+    private string GetEffectiveScopesText(TMember member)
+    {
+        var scopes = ScopeRegistry.GetEffectiveScopes(member.AccessLevel, member.TenantRoles);
+        return string.Join("\n", scopes);
+    }
+
+    private async Task ChangeTenantRoles(ITeam<TMember> team, string userKey, IEnumerable<string> roles)
+    {
+        var user = _users.FirstOrDefault(x => x.Key == userKey || x.Identity == userKey);
+        var member = team.Members.Single(x => x.Key == (user?.Key ?? userKey));
+
+        await TeamService.SetMemberTenantRolesAsync(team.Key, member.Key, roles.ToArray());
+        await ReloadTeams();
     }
 
     private async Task CreateTeam()
