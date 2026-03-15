@@ -33,7 +33,6 @@
     <PackageReference Include="System.Linq.Async" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Api\Tharga.Api\Tharga.Api.csproj" />
     <ProjectReference Include="..\Tharga.Team\Tharga.Team.csproj" />
   </ItemGroup>
 </Project>
