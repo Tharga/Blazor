@@ -3,15 +3,21 @@
 @using Tharga.Api
 @using Tharga.Blazor.Features.Team
 @using Tharga.Team
+@using Microsoft.AspNetCore.Http
 @inject ITeamStateService TeamStateService
 @inject IApiKeyManagementService ApiKeyManagementService
+@inject IHttpContextAccessor HttpContextAccessor
 @inject IOptions<ApiKeyOptions> ApiKeyOptionsAccessor
 @inject IScopeRegistry ScopeRegistry
 @inject IJSRuntime Js
 @inject DialogService DialogService
 @inject NotificationService NotificationService
 
-@if (_selectedTeam == null)
+@if (!_hasAccess)
+{
+    <RadzenText>Access denied. You need the API key management permission to view this page.</RadzenText>
+}
+else if (_selectedTeam == null)
 {
     <RadzenText>No team selected.</RadzenText>
 }
@@ -99,6 +105,7 @@ else
 }
 
 @code {
+    private bool _hasAccess;
     private ITeam _selectedTeam;
     private ApiKeyModel[] _keys;
     private ApiKeyOptions _options;
@@ -111,6 +118,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var user = HttpContextAccessor.HttpContext?.User;
+        _hasAccess = user?.HasClaim(TeamClaimTypes.Scope, ApiKeyScopes.Manage) ?? false;
+        if (!_hasAccess) { await base.OnInitializedAsync(); return; }
+
         _options = ApiKeyOptionsAccessor.Value;
         _newExpiryDate = _options.MaxExpiryDays.HasValue
             ? DateTime.UtcNow.AddDays(_options.MaxExpiryDays.Value).Date
