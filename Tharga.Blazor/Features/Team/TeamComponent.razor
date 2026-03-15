@@ -5,8 +5,11 @@
 @using Tharga.Api
 @using Tharga.Toolkit
 @typeparam TMember where TMember : class, Tharga.Team.ITeamMember
+@using Microsoft.AspNetCore.Http
 @inject ITeamService TeamService
+@inject ITeamManagementService TeamManagementService
 @inject ITeamStateService TeamStateService
+@inject IHttpContextAccessor HttpContextAccessor
 @inject IUserService UserService
 @inject IJSRuntime Js
 @inject DialogService DialogService
@@ -30,8 +33,8 @@ else
             {
                 <ExpandableCard Text="@team.Name" Selected="@(_selectedTeam.Key == team.Key)">
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
-                        <RadzenButton icon="edit" Text="Rename" Click="@(async () => { await RenameTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))"/>
-                        <ActionButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(HasAccessLevel(team, AccessLevel.Owner))"/>
+                        <RadzenButton icon="edit" Text="Rename" Click="@(async () => { await RenameTeam(team); })" Visible="@(_canManage)"/>
+                        <ActionButton icon="delete" Text="Delete" Click="@(async () => { await DeleteTeam(team); })" Visible="@(_canManage && HasAccessLevel(team, AccessLevel.Owner))"/>
                         <RadzenButton icon="remove" Text="Leave" Click="@(async () => { await RemoveUserFromTeam(team, _user.Key); })" Visible="@(!HasAccessLevel(team, AccessLevel.Owner))"/>
                     </RadzenStack>
                     <RadzenRow>
@@ -56,7 +59,7 @@ else
                                             {
                                                 <RadzenText>@context.AccessLevel</RadzenText>
                                             }
-                                            else if (HasAccessLevel(team, AccessLevel.Administrator)) //Administrators or higher can change role.
+                                            else if (_canChangeRole)
                                             {
                                                 var accessLevels = Enum.GetValues<AccessLevel>().Where(x => x != AccessLevel.Owner);
                                                 <RadzenDropDown TValue="AccessLevel" Value="@context.AccessLevel" ValueChanged="@(x => ChangeRole(team, context.Key, x))" Data="@accessLevels"/>
@@ -71,7 +74,7 @@ else
                                     {
                                         <RadzenDataGridColumn Title="Roles" Width="200px">
                                             <Template>
-                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && _user.Key != context.Key && context.AccessLevel != AccessLevel.Owner)
+                                                @if (_canChangeRole && _user.Key != context.Key && context.AccessLevel != AccessLevel.Owner)
                                                 {
                                                     <RadzenDropDown TValue="IEnumerable<string>"
                                                                     Value="@(context.TenantRoles ?? Array.Empty<string>())"
@@ -103,13 +106,13 @@ else
                                     <RadzenDataGridColumn>
                                         <Template>
                                             <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
-                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && context.Invitation != null)
+                                                @if (_canInvite && context.Invitation != null)
                                                 {
                                                     <span title="Copy invitation link">
                                                         <StandardButton Icon="link" Click="@(() => CopyInvitationLink(team, context.Key))"/>
                                                     </span>
                                                 }
-                                                @if (HasAccessLevel(team, AccessLevel.Administrator) && _user.Key != context.Key && context.AccessLevel != AccessLevel.Owner)
+                                                @if (_canRemove && _user.Key != context.Key && context.AccessLevel != AccessLevel.Owner)
                                                 {
                                                     <span title="Remove member">
                                                         <StandardButton Icon="remove" Click="@(() => RemoveUserFromTeam(team, context.Key))"/>
@@ -123,7 +126,7 @@ else
                         </RadzenColumn>
                     </RadzenRow>
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
-                        <RadzenButton Icon="add" Text="Invite User" Click="@(() => AddUser(team))" Visible="@(HasAccessLevel(team, AccessLevel.Administrator))"/>
+                        <RadzenButton Icon="add" Text="Invite User" Click="@(() => AddUser(team))" Visible="@(_canInvite)"/>
                     </RadzenStack>
                 </ExpandableCard>
             }
@@ -143,9 +146,19 @@ else
     private IUser _user;
     private bool _showTenantRoles;
     private string[] _availableRoles = Array.Empty<string>();
+    private bool _canManage;
+    private bool _canInvite;
+    private bool _canRemove;
+    private bool _canChangeRole;
 
     protected override async Task OnInitializedAsync()
     {
+        var claims = HttpContextAccessor.HttpContext?.User;
+        _canManage = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.Manage) ?? false;
+        _canInvite = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberInvite) ?? false;
+        _canRemove = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRemove) ?? false;
+        _canChangeRole = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRole) ?? false;
+
         _showTenantRoles = BlazorOptions.Value.ShowTenantRoles;
         if (_showTenantRoles)
             _availableRoles = TenantRoleRegistry.All.Select(r => r.Name).ToArray();
@@ -169,13 +182,13 @@ else
         var user = _users.FirstOrDefault(x => x.Key == userKey || x.Identity == userKey);
         var member = team.Members.Single(x => x.Key == (user?.Key ?? userKey));
 
-        await TeamService.SetMemberTenantRolesAsync(team.Key, member.Key, roles.ToArray());
+        await TeamManagementService.SetMemberTenantRolesAsync(team.Key, member.Key, roles.ToArray());
         await ReloadTeams();
     }
 
     private async Task CreateTeam()
     {
-        await TeamService.CreateTeamAsync();
+        await TeamManagementService.CreateTeamAsync();
         await ReloadTeams();
     }
 
@@ -207,7 +220,7 @@ else
         var response = await DialogService.Confirm($"User '{email}' will be removed from the team '{team.Name}'.");
         if (response != true) return;
 
-        await TeamService.RemoveMemberAsync(team.Key, member.Key);
+        await TeamManagementService.RemoveMemberAsync(team.Key, member.Key);
         await ReloadTeams();
     }
 
@@ -216,7 +229,7 @@ else
         var user = _users.FirstOrDefault(x => x.Key == userKey || x.Identity == userKey);
         var member = team.Members.Single(x => x.Key == (user?.Key ?? userKey));
 
-        await TeamService.SetMemberRoleAsync(team.Key, member.Key, accessLevel);
+        await TeamManagementService.SetMemberRoleAsync(team.Key, member.Key, accessLevel);
         await ReloadTeams();
     }
 
@@ -225,7 +238,7 @@ else
         var response = await DialogService.Confirm($"Team '{team.Name}' will be deleted.");
         if (response != true) return;
 
-        await TeamService.DeleteTeamAsync<TMember>(team.Key);
+        await TeamManagementService.DeleteTeamAsync(team.Key);
 
         await ReloadTeams();
     }
