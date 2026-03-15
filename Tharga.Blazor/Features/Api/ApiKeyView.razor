@@ -223,7 +223,7 @@ else
         var result = await DialogService.Confirm($"The {context.Name} key will be locked. After that, it cannot be retrieved.", "Confirm lock API key");
         if (result != true) return;
 
-        await ApiKeyManagementService.LockKeyAsync(context.Key);
+        await ApiKeyManagementService.LockKeyAsync(_selectedTeam.Key, context.Key);
         await ReloadData();
     }
 
@@ -234,7 +234,7 @@ else
 
         try
         {
-            await ApiKeyManagementService.DeleteKeyAsync(context.Key);
+            await ApiKeyManagementService.DeleteKeyAsync(_selectedTeam.Key, context.Key);
             await ReloadData();
             NotificationService.Notify(NotificationSeverity.Success, "API key deleted");
         }
