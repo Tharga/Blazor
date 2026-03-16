@@ -3,10 +3,10 @@
 @using Tharga.Api
 @using Tharga.Blazor.Features.Team
 @using Tharga.Team
-@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Components.Authorization
 @inject ITeamStateService TeamStateService
 @inject IApiKeyManagementService ApiKeyManagementService
-@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthStateProvider
 @inject IOptions<ApiKeyOptions> ApiKeyOptionsAccessor
 @inject IScopeRegistry ScopeRegistry
 @inject IJSRuntime Js
@@ -118,8 +118,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var user = HttpContextAccessor.HttpContext?.User;
-        _hasAccess = user?.HasClaim(TeamClaimTypes.Scope, ApiKeyScopes.Manage) ?? false;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _hasAccess = user.HasClaim(TeamClaimTypes.Scope, ApiKeyScopes.Manage);
         if (!_hasAccess) { await base.OnInitializedAsync(); return; }
 
         _options = ApiKeyOptionsAccessor.Value;

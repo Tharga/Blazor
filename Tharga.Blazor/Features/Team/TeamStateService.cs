@@ -67,7 +67,7 @@ internal class TeamStateService : ITeamStateService
                 }
                 else
                 {
-                    var teamKey = await _localStorageService.GetItemAsStringAsync("SelectedTeam");
+                    var teamKey = await _localStorageService.GetItemAsStringAsync(Constants.SelectedTeamLocalStorageKey);
                     await AssignTeamAsync(teams.FirstOrDefault(x => x.Key == teamKey) ?? teams.FirstOrDefault(), true);
                 }
             }
@@ -101,7 +101,7 @@ internal class TeamStateService : ITeamStateService
         if (_selectedTeam?.Key == selectedTeam.Key) return;
 
         _selectedTeam = selectedTeam;
-        await _localStorageService.SetItemAsStringAsync("SelectedTeam", selectedTeam.Key);
+        await _localStorageService.SetItemAsStringAsync(Constants.SelectedTeamLocalStorageKey, selectedTeam.Key);
 
         await _jSRuntime.InvokeVoidAsync("eval", $"document.cookie = '{Constants.SelectedTeamKeyCookie}={_selectedTeam?.Key}; path=/'");
         _navigationManager.Refresh(true);

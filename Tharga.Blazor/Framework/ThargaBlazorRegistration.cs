@@ -1,6 +1,7 @@
-﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Authentication;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Tharga.Api;
 using Tharga.Blazor.Features.BreadCrumbs;
@@ -35,7 +36,25 @@ public static class ThargaBlazorRegistration
                 services.AddScoped(typeof(IApiKeyAdministrationService), sp => sp.GetRequiredService(o._apiKeyService));
             }
 
-            services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
+            // Decorate the existing AuthenticationStateProvider with team claims augmentation.
+            // Move the current registration to a keyed service so the wrapper can resolve it.
+            var existing = services.LastOrDefault(d => d.ServiceType == typeof(AuthenticationStateProvider));
+            if (existing != null)
+            {
+                services.Remove(existing);
+
+                if (existing.ImplementationType != null)
+                {
+                    services.AddKeyedScoped(typeof(AuthenticationStateProvider), "inner-auth-state", existing.ImplementationType);
+                }
+                else if (existing.ImplementationFactory != null)
+                {
+                    var factory = existing.ImplementationFactory;
+                    services.AddKeyedScoped<AuthenticationStateProvider>("inner-auth-state", (sp, key) => (AuthenticationStateProvider)factory(sp));
+                }
+            }
+
+            services.AddScoped<AuthenticationStateProvider, TeamClaimsAuthenticationStateProvider>();
         }
 
         if (o._apiKeyService != null)

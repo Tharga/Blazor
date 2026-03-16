@@ -15,7 +15,7 @@ Razor component library (targets .NET 9.0 and 10.0) built on [Radzen.Blazor](htt
 - **Breadcrumb navigation** - Automatic breadcrumb generation via `BreadCrumbService` with support for virtual segments and URL query parameter-driven breadcrumbs.
 - **Team management UI** - Ready-to-use components for selecting, creating, and managing teams and members (`TeamSelector`, `TeamComponent`, invite dialogs).
 - **API key management** - `ApiKeyView` component for administering API keys scoped to teams (uses `IApiKeyAdministrationService` from [Tharga.Api](https://www.nuget.org/packages/Tharga.Api)).
-- **Claims transformation** - `ClaimsTransformation` adds `TeamKey`, `AccessLevel`, and role claims (`TeamMember`, `TeamOwner`, etc.) from the selected team cookie and membership data.
+- **Claims augmentation** - `TeamClaimsAuthenticationStateProvider` automatically adds `TeamKey`, `AccessLevel`, role, and scope claims based on the selected team and membership data. Works with both Blazor Server and WebAssembly.
 - **Reusable buttons** - `ActionButton`, `CopyButton`, `CancelButton`, and `StandardButton` with built-in busy states, variants, and error handling.
 - **UI utilities** - `CustomErrorBoundary`, `ExpandableCard`, `DateTimeView`, `TimeSpanView`, `Loading`, `LoginDisplay`, and more.
 
@@ -62,4 +62,4 @@ Protect pages with role-based authorization:
 @attribute [Authorize(Roles = Roles.TeamMember)]
 ```
 
-The `ClaimsTransformation` automatically populates `TeamKey` and `AccessLevel` claims from the selected team, enabling service-level authorization via `[RequireAccessLevel]` from Tharga.Api.
+`AddThargaBlazor` automatically decorates the registered `AuthenticationStateProvider` with team claims (`TeamKey`, `AccessLevel`, roles, and scopes), enabling `[Authorize]` attributes and `[RequireAccessLevel]` from Tharga.Api. This works with both Blazor Server and WebAssembly hosting models.

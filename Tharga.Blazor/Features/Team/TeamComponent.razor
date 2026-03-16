@@ -5,11 +5,11 @@
 @using Tharga.Api
 @using Tharga.Toolkit
 @typeparam TMember where TMember : class, Tharga.Team.ITeamMember
-@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Components.Authorization
 @inject ITeamService TeamService
 @inject ITeamManagementService TeamManagementService
 @inject ITeamStateService TeamStateService
-@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthStateProvider
 @inject IUserService UserService
 @inject IJSRuntime Js
 @inject DialogService DialogService
@@ -178,11 +178,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var claims = HttpContextAccessor.HttpContext?.User;
-        _canManage = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.Manage) ?? false;
-        _canInvite = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberInvite) ?? false;
-        _canRemove = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRemove) ?? false;
-        _canChangeRole = claims?.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRole) ?? false;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var claims = authState.User;
+        _canManage = claims.HasClaim(TeamClaimTypes.Scope, TeamScopes.Manage);
+        _canInvite = claims.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberInvite);
+        _canRemove = claims.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRemove);
+        _canChangeRole = claims.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRole);
 
         _showMemberRoles = BlazorOptions.Value.ShowMemberRoles;
         _showScopeOverrides = BlazorOptions.Value.ShowScopeOverrides;
