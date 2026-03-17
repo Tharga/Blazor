@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Tharga.Blazor.Features.BreadCrumbs;
+using Tharga.Blazor.Framework;
 using Tharga.Team.Blazor.Features.Team;
 using Tharga.Team;
 
@@ -62,6 +63,7 @@ public static class ThargaBlazorRegistration
             services.AddScoped(typeof(IApiKeyAdministrationService), sp => sp.GetRequiredService(o._apiKeyService));
         }
 
+        services.Configure<BlazorOptions>(bo => bo.Title = o.Title);
         services.AddSingleton(Options.Create(o));
     }
 }
