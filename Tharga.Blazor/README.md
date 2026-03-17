@@ -1,18 +1,22 @@
 # Tharga Blazor
+[![NuGet](https://img.shields.io/nuget/v/Tharga.Blazor)](https://www.nuget.org/packages/Tharga.Blazor)
+![Nuget](https://img.shields.io/nuget/dt/Tharga.Blazor)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[![GitHub repo](https://img.shields.io/github/repo-size/Tharga/Blazor?style=flat&logo=github&logoColor=red&label=Repo)](https://github.com/Tharga/Blazor)
+Generic reusable Blazor UI components. Works with both **Blazor Server** and **Blazor WebAssembly**. Built on [Radzen.Blazor](https://blazor.radzen.com/).
 
-Razor component library for multi-tenant Blazor applications with team management, API key administration, claims-based authorization, and reusable UI components.
+No team or authentication dependencies — this package is for UI components only.
 
-## Key features
+## Components
 
-- **Team management** - TeamSelector, TeamComponent, invite dialogs
-- **API key management** - ApiKeyView for team-scoped API keys
-- **Claims transformation** - Adds `TeamKey`, `AccessLevel`, and `TeamMember` role claims from team membership
-- **Roles** - `Roles.TeamMember` (any team member), `Roles.Developer`
-- **UI components** - ActionButton, CopyButton, BreadCrumbs, CustomErrorBoundary, Loading, and more
+- **Buttons** - `ActionButton`, `CancelButton`, `CopyButton`, `StandardButton` with built-in busy states and error handling.
+- **Breadcrumbs** - `BreadCrumbService` with virtual segments, query parameter segments, and segment relinking.
+- **Error handling** - `CustomErrorBoundary` with correlation ID logging.
+- **Layout** - `ExpandableCard`, `Loading`, `Title`, `DateTimeView`, `TimeSpanView`.
 
-## Links
+## Related packages
 
-- [GitHub repository](https://github.com/Tharga/Blazor)
-- [Report an issue](https://github.com/Tharga/Blazor/issues)
+| Package | Description |
+|---------|-------------|
+| [Tharga.Team.Blazor](https://www.nuget.org/packages/Tharga.Team.Blazor) | Team management components (depends on this package) |
+| [Tharga.Team](https://www.nuget.org/packages/Tharga.Team) | Domain models and authorization primitives |

@@ -1,0 +1,86 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Tharga.Team
+@attribute [Authorize]
+@inject DialogService DialogService
+@inject ITeamService TeamService
+
+<RadzenTemplateForm TItem="InviteUserModel" Data=@Model Submit=@OnSubmit Style="height: 100%;">
+    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+        <RadzenStack>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Caption">Name</RadzenText>
+                    <div><RadzenTextBox Name="Name" @bind-Value="@Model.Name" Style="width: 100%; min-width: 174px;" /></div>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Caption">Email</RadzenText>
+                    <div><RadzenTextBox Name="Email" @bind-Value="@Model.Email" Style="width: 100%; min-width: 174px;"/></div>
+                    <RadzenRequiredValidator Component="Email" Text="Email is required."/>
+                    <RadzenEmailValidator Component="Email"/>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Caption">Access Level</RadzenText>
+                    <div><RadzenDropDown TValue="AccessLevel" @bind-value="@Model.AccessLevel" Data="@_accessLevels" /></div>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow>
+                <RadzenColumn>
+                    <span class="validation-message">@_errorMessage</span>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStack>
+        <RadzenStack></RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+            <RadzenButton ButtonType="ButtonType.Submit" Text="OK" Icon="check_circle" />
+            <CancelButton Click="CloseDialog" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    private string _errorMessage;
+    private AccessLevel[] _accessLevels;
+
+    [Parameter]
+    public string TeamKey { get; set; }
+
+    private InviteUserModel Model { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model = new InviteUserModel
+        {
+            AccessLevel = AccessLevel.User
+        };
+        _accessLevels = Enum.GetValues<AccessLevel>().Where(x => x != AccessLevel.Owner).ToArray();
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit(InviteUserModel model)
+    {
+        try
+        {
+            await TeamService.AddMemberAsync(TeamKey, model);
+
+            DialogService.Close(true);
+        }
+        catch (Exception e)
+        {
+            _errorMessage = e.Message;
+        }
+    }
+
+    private Task CloseDialog()
+    {
+        DialogService.Close();
+        return Task.CompletedTask;
+    }
+}

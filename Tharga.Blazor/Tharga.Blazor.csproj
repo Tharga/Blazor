@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
     <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -6,7 +6,7 @@
     <Authors>Daniel Bohlin</Authors>
     <Company>Thargelion AB</Company>
     <Product>Tharga Blazor</Product>
-    <Description>Common features for blazor and radzen. Multitennant and more.</Description>
+    <Description>Generic reusable Blazor UI components: buttons, breadcrumbs, error boundaries, and more. Built on Radzen.Blazor.</Description>
     <PackageIconUrl>https://thargelion.se/wp-content/uploads/2025/11/Thargelion-White-Icon-150.png</PackageIconUrl>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -27,11 +27,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Radzen.Blazor" Version="9.0.4" />
-    <PackageReference Include="System.Linq.Async" Version="7.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Tharga.Team\Tharga.Team.csproj" />
+    <PackageReference Include="Tharga.Toolkit" Version="1.15.18" />
   </ItemGroup>
 </Project>
