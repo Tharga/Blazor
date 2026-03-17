@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Tharga.Api;
 using Tharga.Team;
 
 namespace Tharga.Blazor.Framework;

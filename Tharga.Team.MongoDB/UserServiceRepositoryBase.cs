@@ -1,4 +1,3 @@
-using Tharga.Api;
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using Tharga.MongoDB;

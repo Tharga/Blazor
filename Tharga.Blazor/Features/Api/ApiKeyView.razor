@@ -1,8 +1,7 @@
 @using Microsoft.Extensions.Options
 @using Microsoft.JSInterop
-@using Tharga.Api
-@using Tharga.Blazor.Features.Team
 @using Tharga.Team
+@using Tharga.Blazor.Features.Team
 @using Microsoft.AspNetCore.Components.Authorization
 @inject ITeamStateService TeamStateService
 @inject IApiKeyManagementService ApiKeyManagementService
@@ -140,18 +139,17 @@ else
         _keys = keys
             .Select(x =>
             {
-                var entity = x as ApiKeyEntity;
                 return new ApiKeyModel
                 {
                     Key = x.Key,
                     Name = x.Name,
                     ApiKey = x.ApiKey,
                     VisibleKey = _apiKeyMask,
-                    AccessLevel = entity?.AccessLevel ?? AccessLevel.Administrator,
-                    Roles = entity?.Roles,
-                    ScopeOverrides = entity?.ScopeOverrides,
-                    ExpiryDate = entity?.ExpiryDate,
-                    CreatedAt = entity?.CreatedAt,
+                    AccessLevel = x.AccessLevel,
+                    Roles = x.Roles,
+                    ScopeOverrides = x.ScopeOverrides,
+                    ExpiryDate = x.ExpiryDate,
+                    CreatedAt = x.CreatedAt,
                 };
             }).ToArray();
 

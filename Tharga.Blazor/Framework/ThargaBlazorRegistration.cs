@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Tharga.Api;
 using Tharga.Blazor.Features.BreadCrumbs;
 using Tharga.Blazor.Features.Team;
 using Tharga.Team;

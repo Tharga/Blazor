@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Moq;
-using Tharga.Api;
+using Tharga.Team;
 using Tharga.Blazor.Framework;
 using Tharga.Team;
 

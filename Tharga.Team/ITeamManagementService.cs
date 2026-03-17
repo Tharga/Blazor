@@ -1,5 +1,3 @@
-using Tharga.Api;
-
 namespace Tharga.Team;
 
 /// <summary>
