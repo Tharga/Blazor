@@ -1,4 +1,4 @@
-namespace Tharga.Blazor.Framework;
+namespace Tharga.Team.Blazor.Framework;
 
 public static class Roles
 {

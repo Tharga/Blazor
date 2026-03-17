@@ -4,10 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Tharga.Blazor.Features.BreadCrumbs;
-using Tharga.Blazor.Features.Team;
+using Tharga.Team.Blazor.Features.Team;
 using Tharga.Team;
 
-namespace Tharga.Blazor.Framework;
+namespace Tharga.Team.Blazor.Framework;
 
 public static class ThargaBlazorRegistration
 {

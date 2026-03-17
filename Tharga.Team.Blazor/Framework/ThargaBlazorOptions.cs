@@ -1,6 +1,6 @@
 ﻿using Tharga.Team;
 
-namespace Tharga.Blazor.Framework;
+namespace Tharga.Team.Blazor.Framework;
 
 public record ThargaBlazorOptions
 {

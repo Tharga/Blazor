@@ -3,10 +3,9 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Moq;
 using Tharga.Team;
-using Tharga.Blazor.Framework;
-using Tharga.Team;
+using Tharga.Team.Blazor.Framework;
 
-namespace Tharga.Blazor.Tests;
+namespace Tharga.Team.Blazor.Tests;
 
 public class TeamClaimsAuthenticationStateProviderTests
 {

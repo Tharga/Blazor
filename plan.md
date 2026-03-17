@@ -1,95 +1,89 @@
-# Plan: Restructure package dependencies for WASM compatibility
+# Plan: Restructure into Tharga.Platform monorepo
 
 ## Goal
-Make `Tharga.Blazor` usable from pure WASM projects by eliminating the transitive dependency on server-only packages (`Microsoft.AspNetCore.OpenApi`, `Swashbuckle`, `Tharga.MongoDB`).
+Rename the repo to Tharga.Platform, split Tharga.Blazor into generic and team-specific packages, and move Tharga.Api into the same repo for easier maintenance.
 
-## Current dependency chain (broken for WASM)
+## Target package structure
 ```
-Tharga.Blazor → Tharga.Team → Tharga.Api → Microsoft.AspNetCore.OpenApi, Swashbuckle, Tharga.MongoDB
+Tharga.Platform (repo)
+├── Tharga.Team              — Domain models, authorization, service abstractions (plain .NET)
+├── Tharga.Team.MongoDB      — MongoDB persistence for teams/users
+├── Tharga.Team.Blazor       — Team-specific Blazor components (NEW)
+├── Tharga.Blazor            — Generic Blazor UI components (slimmed down)
+├── Tharga.Api               — Server-only API auth, Swagger, audit (MOVED from separate repo)
+├── Tharga.Blazor.Tests      — Tests for generic components
+├── Tharga.Team.Blazor.Tests — Tests for team components (NEW)
+└── Tharga.Api.Tests          — Tests for API (MOVED from separate repo)
 ```
 
-## Target dependency chain
+## Dependency graph
 ```
-WASM project:    Tharga.Blazor → Tharga.Team (plain .NET only)
-Server project:  Tharga.Blazor → Tharga.Team.MongoDB → Tharga.Team + Tharga.MongoDB
-                                + Tharga.Api (directly, for auth handler / Swagger / audit)
+Tharga.Team                          (plain .NET)
+     ↑           ↑            ↑
+Tharga.Blazor  Tharga.Team.MongoDB  Tharga.Api
+(generic UI)   (+ Tharga.MongoDB)   (+ Tharga.MongoDB, ASP.NET Core, Swagger)
+     ↑
+Tharga.Team.Blazor
+(+ Tharga.Team)
 ```
 
-## What moves where
+## What goes where
 
-### Types moving FROM Tharga.Api INTO Tharga.Team (plain .NET, WASM-safe)
-These are team/tenant concepts with no server dependencies:
-- `AccessLevel` enum
-- `TeamClaimTypes` (claim type constants)
-- `TeamScopes`, `ApiKeyScopes` (scope constants)
-- `IScopeRegistry` / `ScopeRegistry` / `ScopeDefinition`
-- `ITenantRoleRegistry` / `TenantRoleRegistry` / `TenantRoleDefinition`
-- `RequireAccessLevelAttribute` / `RequireScopeAttribute`
-- `AccessLevelProxy<T>` / `ScopeProxy<T>` (DispatchProxy — plain .NET)
-- `IApiKey`, `IApiKeyAdministrationService`, `IApiKeyManagementService` (interfaces only)
-- `ApiKeyOptions`
-- DI extensions: `AccessLevelServiceCollectionExtensions`, `ScopeServiceCollectionExtensions`, `TenantRoleServiceCollectionExtensions`
+### Tharga.Blazor (generic — no team dependencies)
+- Features/BreadCrumbs/
+- Framework/Buttons/ (ActionButton, CancelButton, CopyButton, StandardButton)
+- Features/Common/ (DateTimeView, TimeSpanView, ExpandableCard, Loading, Title)
+- Framework/CustomErrorBoundary
 
-### Types staying in Tharga.Api (server-only)
-These require ASP.NET Core, MongoDB, or Swagger:
-- `ApiKeyAuthenticationHandler` (ASP.NET Core auth handler)
-- `ApiKeyEntity` / `ApiKeyAdministrationService` / `ApiKeyManagementService` (MongoDB implementations)
-- `ApiKeyRepository` / `ApiKeyRepositoryCollection` (MongoDB)
-- `ApiKeyRegistration` (DI for auth handler)
-- `ApiKeyConstants` (header name, scheme name)
-- `ControllersRegistration` / `ThargaControllerOptions` (Swagger)
-- Entire `Audit/` folder (~18 files — ASP.NET Core + MongoDB)
-
-### Tharga.Api changes
-After migration, Tharga.Api:
-- Adds a dependency on `Tharga.Team` (for `AccessLevel`, `IApiKey`, scopes, etc.)
-- Removes `Tharga.Toolkit` dependency (moves to Tharga.Team if needed)
-- Keeps `Tharga.MongoDB`, `Swashbuckle`, `Microsoft.AspNetCore.OpenApi`
-
-### Tharga.Team changes
-- Adds the moved types (see above)
-- Removes dependency on `Tharga.Api`
-- Keeps `Microsoft.AspNetCore.Components.Authorization` (WASM-safe)
-- Adds `Tharga.Toolkit` dependency (if needed by moved types)
+### Tharga.Team.Blazor (team-specific)
+- Features/Team/ (TeamSelector, TeamComponent, TeamDialog, InviteUserDialog, TeamInviteView, TeamStateService, ITeamStateService, UserProfileView)
+- Features/Api/ (ApiKeyView, ApiKeyModel)
+- Framework/TeamClaimsAuthenticationStateProvider
+- Framework/ThargaBlazorRegistration (→ renamed to ThargaTeamBlazorRegistration)
+- Framework/ThargaBlazorOptions
+- Framework/LoginDisplay
+- Framework/Roles
+- Framework/Constants
 
 ## Steps
 
-### Phase 1: Move types from Tharga.Api to Tharga.Team
-- [x] **1.1** Create folders/namespaces in Tharga.Team for the moved types. Use a namespace like `Tharga.Team` (not `Tharga.Api`) for new home.
-- [x] **1.2** Move the plain .NET types listed above from Tharga.Api to Tharga.Team.
-- [x] **1.3** Update `Tharga.Team.csproj` — remove `Tharga.Api` dependency, add `Tharga.Toolkit` if needed.
-- [x] **1.4** Move or create corresponding unit tests in the Blazor test project.
+### Phase 1: Move Tharga.Api into the repo
+- [ ] **1.1** Copy Tharga.Api source and test projects from `C:\dev\tharga\Toolkit\Api` into the Blazor repo.
+- [ ] **1.2** Update Tharga.Api.csproj — replace NuGet Tharga.Team reference with project reference, remove `99.0.0-local` version.
+- [ ] **1.3** Update solution file to include Tharga.Api and Tharga.Api.Tests.
+- [ ] **1.4** Build and test.
 
-### Phase 2: Update Tharga.Api to depend on Tharga.Team
-- [x] **2.1** Add `Tharga.Team` as a dependency to `Tharga.Api.csproj`.
-- [x] **2.2** Remove the moved source files from Tharga.Api.
-- [x] **2.3** Add `[Obsolete]` type-forwarding shims in Tharga.Api for the moved types (to avoid breaking existing consumers on upgrade). These forward to the types now in Tharga.Team.
-- [x] **2.4** Update Tharga.Api tests — adjust imports/namespaces.
-- [x] **2.5** Build and test Tharga.Api.
+### Phase 2: Create Tharga.Team.Blazor project
+- [ ] **2.1** Create Tharga.Team.Blazor.csproj (Razor SDK, targets net9.0;net10.0).
+- [ ] **2.2** Move team-specific files from Tharga.Blazor to Tharga.Team.Blazor.
+- [ ] **2.3** Update namespaces — `Tharga.Blazor.*` → `Tharga.Team.Blazor.*` where appropriate.
+- [ ] **2.4** Add project references: Tharga.Team.Blazor → Tharga.Blazor + Tharga.Team.
+- [ ] **2.5** Create Tharga.Team.Blazor.Tests with moved tests.
 
-### Phase 3: Update Tharga.Blazor
-- [x] **3.1** Update `Tharga.Blazor.csproj` — verify it only depends on `Tharga.Team` (no `Tharga.Api`).
-- [x] **3.2** Update imports in Tharga.Blazor source files (namespaces may have changed for moved types).
-- [x] **3.3** Build and test Tharga.Blazor.
+### Phase 3: Slim down Tharga.Blazor
+- [ ] **3.1** Remove team-specific files from Tharga.Blazor (already moved in Phase 2).
+- [ ] **3.2** Remove Tharga.Team dependency from Tharga.Blazor.csproj.
+- [ ] **3.3** Verify Tharga.Blazor has no team/auth imports.
 
-### Phase 4: Update Tharga.Team.MongoDB
-- [x] **4.1** Verify `Tharga.Team.MongoDB` depends on `Tharga.Team` + `Tharga.MongoDB` (no `Tharga.Api`).
-- [x] **4.2** Update imports if needed.
-- [x] **4.3** Build.
+### Phase 4: Update CI/CD pipeline
+- [ ] **4.1** Update azure-pipelines.yml to build, pack, and push all 5 packages.
+- [ ] **4.2** Add pack/push steps for Tharga.Api and Tharga.Team.Blazor.
+- [ ] **4.3** Ensure correct build order (Team → Blazor → Api, Team.MongoDB, Team.Blazor).
 
-### Phase 5: Validate WASM compatibility
-- [x] **5.1** Build `Quilt4Net.Server.Client` (WASM project) with the updated local packages.
-- [x] **5.2** Verify the `NETSDK1082 browser-wasm` error is resolved.
-- [x] **5.3** Build the full `Quilt4Net.Server` solution to confirm server-side still works.
+### Phase 5: Documentation
+- [ ] **5.1** Update top-level README.md for Tharga.Platform.
+- [ ] **5.2** Update Tharga.Blazor/README.md — generic components only.
+- [ ] **5.3** Create Tharga.Team.Blazor/README.md.
+- [ ] **5.4** Verify Tharga.Api/README.md is current.
+- [ ] **5.5** Update Tharga.Team/README.md if needed.
 
-### Phase 6: Version bumps and publish
-- [x] **6.1** Bump Tharga.Team version (minor bump — new public types).
-- [x] **6.2** Bump Tharga.Api version (minor bump — breaking: types moved, shims added).
-- [x] **6.3** Bump Tharga.Blazor version if needed.
-- [x] **6.4** Publish packages in order: Tharga.Team → Tharga.Api → Tharga.Team.MongoDB → Tharga.Blazor.
+### Phase 6: Version bump and cleanup
+- [ ] **6.1** Bump majorMinor in azure-pipelines.yml.
+- [ ] **6.2** Remove `local-packages/` and `_removed_audit/` folders.
+- [ ] **6.3** Build all projects.
+- [ ] **6.4** Run all tests.
 
-## Risks and considerations
-- **Breaking change for Tharga.Api consumers**: Types move namespaces. Mitigated by `[Obsolete]` type-forwarding in Phase 2.3. Consider a major version bump for Tharga.Api if clean break is preferred.
-- **Namespace decisions**: Moved types currently live in `Tharga.Api` namespace. Options: (a) keep `Tharga.Api` namespace via `[TypeForwardedTo]`, (b) move to `Tharga.Team` namespace. Option (b) is cleaner long-term but requires consumers to update `using` statements.
-- **Tharga.Api is a separate repo** (`C:\dev\tharga\Toolkit\Api`): Changes span two repositories (Blazor + Api). Coordinate releases.
-- **Publish order matters**: Tharga.Team must be published before Tharga.Api (since Api will depend on Team).
+## Notes
+- The repo rename (Blazor → Platform) happens on GitHub — this plan covers the content restructuring.
+- Tharga.Api.csproj switches from NuGet to project reference for Tharga.Team.
+- AuditLogView (previously removed) can be added back to Tharga.Api or Tharga.Team.Blazor if needed later.

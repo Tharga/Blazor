@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Tharga.Team;
 
-namespace Tharga.Blazor.Framework;
+namespace Tharga.Team.Blazor.Framework;
 
 internal class TeamClaimsAuthenticationStateProvider : AuthenticationStateProvider
 {

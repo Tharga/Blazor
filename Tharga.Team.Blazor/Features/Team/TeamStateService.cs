@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
-using Tharga.Blazor.Framework;
+using Tharga.Team.Blazor.Framework;
 using Tharga.Team;
 
-namespace Tharga.Blazor.Features.Team;
+namespace Tharga.Team.Blazor.Features.Team;
 
 internal class TeamStateService : ITeamStateService
 {

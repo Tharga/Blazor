@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using Tharga.Toolkit;
 
-namespace Tharga.Blazor.Framework;
+namespace Tharga.Team.Blazor.Framework;
 
 public static class ClaimsPrincipalExtensions
 {

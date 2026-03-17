@@ -1,4 +1,4 @@
-﻿namespace Tharga.Blazor.Features.Team;
+﻿namespace Tharga.Team.Blazor.Features.Team;
 
 public record TeamDialogModel
 {

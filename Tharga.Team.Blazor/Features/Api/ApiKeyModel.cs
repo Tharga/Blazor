@@ -1,6 +1,6 @@
 using Tharga.Team;
 
-namespace Tharga.Blazor.Features.Api;
+namespace Tharga.Team.Blazor.Features.Api;
 
 public record ApiKeyModel
 {

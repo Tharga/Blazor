@@ -82,7 +82,7 @@
     {
         var uri = new Uri(NavigationManager.Uri);
 
-        var values = Framework.UriExtensions.GetQueryValue(uri, Constants.TeamInviteCode).ToArray();
+        var values = Tharga.Blazor.Framework.UriExtensions.GetQueryValue(uri, Constants.TeamInviteCode).ToArray();
         string inviteCode;
         if (values.Any())
         {
@@ -103,7 +103,7 @@
 
         await TeamService.SetInvitationResponseAsync(_team.Key, _user.Key, inviteModel.Code, true);
         await LocalStorage.RemoveItemAsync(Constants.TeamInviteCode);
-        NavigationManager.NavigateTo(Framework.UriExtensions.RemoveQuery(new Uri(NavigationManager.Uri)).AbsoluteUri, true);
+        NavigationManager.NavigateTo(Tharga.Blazor.Framework.UriExtensions.RemoveQuery(new Uri(NavigationManager.Uri)).AbsoluteUri, true);
     }
 
     private async Task Decline()
@@ -113,6 +113,6 @@
 
         await TeamService.SetInvitationResponseAsync(_team.Key, _user.Key, inviteModel.Code, false);
         await LocalStorage.RemoveItemAsync(Constants.TeamInviteCode);
-        NavigationManager.NavigateTo(Framework.UriExtensions.RemoveQuery(new Uri(NavigationManager.Uri)).AbsoluteUri, true);
+        NavigationManager.NavigateTo(Tharga.Blazor.Framework.UriExtensions.RemoveQuery(new Uri(NavigationManager.Uri)).AbsoluteUri, true);
     }
 }
