@@ -20,8 +20,8 @@ public interface IApiKey
     /// <summary>Arbitrary key-value metadata associated with this API key.</summary>
     Dictionary<string, string> Tags { get; }
 
-    /// <summary>Access level assigned to this API key.</summary>
-    AccessLevel AccessLevel { get; }
+    /// <summary>Access level assigned to this API key. Null defaults to Administrator.</summary>
+    AccessLevel? AccessLevel { get; }
 
     /// <summary>Roles assigned to this API key.</summary>
     string[] Roles { get; }

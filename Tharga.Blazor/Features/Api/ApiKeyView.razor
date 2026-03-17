@@ -145,7 +145,7 @@ else
                     Name = x.Name,
                     ApiKey = x.ApiKey,
                     VisibleKey = _apiKeyMask,
-                    AccessLevel = x.AccessLevel,
+                    AccessLevel = x.AccessLevel ?? AccessLevel.Administrator,
                     Roles = x.Roles,
                     ScopeOverrides = x.ScopeOverrides,
                     ExpiryDate = x.ExpiryDate,
