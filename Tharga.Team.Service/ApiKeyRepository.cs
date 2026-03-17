@@ -1,0 +1,64 @@
+using MongoDB.Driver;
+
+namespace Tharga.Team.Service;
+
+internal class ApiKeyRepository : IApiKeyRepository
+{
+    private readonly IApiKeyRepositoryCollection _collection;
+
+    public ApiKeyRepository(IApiKeyRepositoryCollection collection)
+    {
+        _collection = collection;
+    }
+
+    public IAsyncEnumerable<ApiKeyEntity> GetAsync()
+    {
+        return _collection.GetAsync();
+    }
+
+    public Task<ApiKeyEntity> GetAsync(string key)
+    {
+        return _collection.GetOneAsync(x => x.Key == key);
+    }
+
+    public async Task<ApiKeyEntity> AddAsync(ApiKeyEntity apiKeyEntity)
+    {
+        await _collection.AddAsync(apiKeyEntity);
+        return apiKeyEntity;
+    }
+
+    public Task LockKeyAsync(string key)
+    {
+        var filter = new FilterDefinitionBuilder<ApiKeyEntity>()
+            .Eq(x => x.Key, key);
+        var update = new UpdateDefinitionBuilder<ApiKeyEntity>()
+            .Set(x => x.ApiKey, null);
+        return _collection.UpdateOneAsync(filter, update);
+    }
+
+    public async Task UpdateAsync(string key, ApiKeyEntity apiKeyEntity)
+    {
+        var item = await _collection.GetOneAsync(x => x.Key == key);
+        apiKeyEntity = apiKeyEntity with
+        {
+            Id = item.Id,
+            Key = key
+        };
+        await _collection.ReplaceOneAsync(apiKeyEntity);
+    }
+
+    public IAsyncEnumerable<ApiKeyEntity> GetByPrefixAsync(string prefix)
+    {
+        return _collection.GetAsync(x => x.ApiKeyPrefix == prefix);
+    }
+
+    public Task DeleteAsync(string key)
+    {
+        return _collection.DeleteOneAsync(x => x.Key == key);
+    }
+
+    public async Task PurgeExpiredAsync()
+    {
+        await _collection.DeleteManyAsync(x => x.ExpiryDate != null && x.ExpiryDate < DateTime.UtcNow);
+    }
+}
