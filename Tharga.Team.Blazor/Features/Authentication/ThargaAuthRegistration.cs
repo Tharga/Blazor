@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 
-namespace Tharga.Blazor.Features.Authentication;
+namespace Tharga.Team.Blazor.Features.Authentication;
 
 /// <summary>
 /// Extension methods for registering Tharga authentication services.

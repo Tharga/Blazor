@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Tharga.Blazor.Features.Authentication;
+using Tharga.Team.Blazor.Features.Authentication;
 
-namespace Tharga.Blazor.Tests;
+namespace Tharga.Team.Blazor.Tests;
 
 public class ThargaAuthRegistrationTests
 {

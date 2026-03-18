@@ -1,4 +1,4 @@
-namespace Tharga.Blazor.Features.Authentication;
+namespace Tharga.Team.Blazor.Features.Authentication;
 
 /// <summary>
 /// Options for configuring Tharga authentication registration.

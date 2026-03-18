@@ -5,47 +5,7 @@
 
 Generic reusable Blazor UI components. Works with both **Blazor Server** and **Blazor WebAssembly**. Built on [Radzen.Blazor](https://blazor.radzen.com/).
 
-## Authentication
-
-Built-in Azure AD (CIAM) authentication helpers. Two calls to set up Cookie + OIDC authentication:
-
-```csharp
-// Program.cs
-builder.AddThargaAuth();   // registers auth services
-app.UseThargaAuth();       // maps /login and /logout endpoints
-```
-
-### Configuration
-
-Add an `AzureAd` section to `appsettings.json`:
-
-```json
-{
-  "AzureAd": {
-    "Authority": "https://<tenant>.ciamlogin.com/<domain>",
-    "ClientId": "<client-id>",
-    "TenantId": "<tenant-id>",
-    "CallbackPath": "/signin-oidc"
-  }
-}
-```
-
-### Options
-
-Customize behavior via `ThargaAuthOptions`:
-
-```csharp
-builder.AddThargaAuth(o =>
-{
-    o.LoginPath = "/sign-in";              // default: "/login"
-    o.LogoutPath = "/sign-out";            // default: "/logout"
-    o.ValidateConfiguration = false;       // default: true — validates AzureAd config at startup
-});
-```
-
-### UI components
-
-Use the existing `LoginDisplay` component (from `Tharga.Team.Blazor`) for the login/logout UI, or build your own against the mapped endpoints.
+No team or authentication dependencies — this package is for UI components only. For authentication and team management, see [Tharga.Team.Blazor](https://www.nuget.org/packages/Tharga.Team.Blazor).
 
 ## Components
 

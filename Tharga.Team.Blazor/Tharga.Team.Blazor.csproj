@@ -28,7 +28,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.5.0" />
     <PackageReference Include="Radzen.Blazor" Version="9.0.4" />
     <PackageReference Include="System.Linq.Async" Version="7.0.0" />
     <PackageReference Include="Tharga.Toolkit" Version="1.15.18" />
