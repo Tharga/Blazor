@@ -1,14 +1,12 @@
-﻿using Tharga.Team;
+﻿using Tharga.Blazor.Framework;
 
 namespace Tharga.Team.Blazor.Framework;
 
-public record ThargaBlazorOptions
+public record ThargaBlazorOptions : BlazorOptions
 {
     internal Type _teamService;
     internal Type _userService;
     internal Type _apiKeyService;
-
-    public string Title { get; set; }
 
     /// <summary>
     /// Automatically create the first team for users.

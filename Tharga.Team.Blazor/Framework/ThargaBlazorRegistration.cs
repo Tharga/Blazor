@@ -1,24 +1,20 @@
-using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Tharga.Blazor.Features.BreadCrumbs;
 using Tharga.Blazor.Framework;
 using Tharga.Team.Blazor.Features.Team;
-using Tharga.Team;
 
 namespace Tharga.Team.Blazor.Framework;
 
 public static class ThargaBlazorRegistration
 {
-    public static void AddThargaBlazor(this IServiceCollection services, Action<ThargaBlazorOptions> options = null)
+    public static void AddThargaTeamBlazor(this IServiceCollection services, Action<ThargaBlazorOptions> options = null, IConfiguration configuration = null)
     {
-        services.AddScoped<BreadCrumbService>();
-        services.AddBlazoredLocalStorage();
-
         var o = new ThargaBlazorOptions();
         options?.Invoke(o);
+
+        services.AddThargaBlazor(bo => bo.Title = o.Title, configuration);
 
         if (o._teamService != null)
         {
@@ -50,7 +46,7 @@ public static class ThargaBlazorRegistration
                 else if (existing.ImplementationFactory != null)
                 {
                     var factory = existing.ImplementationFactory;
-                    services.AddKeyedScoped<AuthenticationStateProvider>("inner-auth-state", (sp, key) => (AuthenticationStateProvider)factory(sp));
+                    services.AddKeyedScoped("inner-auth-state", (sp, _) => (AuthenticationStateProvider)factory(sp));
                 }
             }
 
@@ -63,7 +59,6 @@ public static class ThargaBlazorRegistration
             services.AddScoped(typeof(IApiKeyAdministrationService), sp => sp.GetRequiredService(o._apiKeyService));
         }
 
-        services.Configure<BlazorOptions>(bo => bo.Title = o.Title);
         services.AddSingleton(Options.Create(o));
     }
 }

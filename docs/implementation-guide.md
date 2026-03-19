@@ -45,15 +45,37 @@ dotnet add package Tharga.Blazor
 ### Program.cs (Server)
 
 ```csharp
+using Tharga.Blazor.Framework;
+
 builder.Services.AddRadzenComponents();
 builder.Services.AddRadzenCookieThemeService(o =>
     o.StorageKeyName = "ThemeStorageName");
+builder.Services.AddThargaBlazor(o => o.Title = "My App");
 ```
+
+`AddThargaBlazor` registers `BreadCrumbService`, `BlazoredLocalStorage`, and `BlazorOptions`. It also supports binding from `appsettings.json`:
+
+```json
+{
+  "Tharga": {
+    "Blazor": {
+      "Title": "My App"
+    }
+  }
+}
+```
+
+```csharp
+builder.Services.AddThargaBlazor(configuration: builder.Configuration);
+```
+
+Code configuration takes precedence over `appsettings.json`.
 
 ### Program.cs (Client — if using WebAssembly)
 
 ```csharp
 builder.Services.AddRadzenComponents();
+builder.Services.AddThargaBlazor();
 ```
 
 ### _Imports.razor (both projects)
@@ -88,7 +110,7 @@ Add to `<body>`:
 | `<CancelButton>` | Cancel button |
 | `<CopyButton>` | Copy-to-clipboard button |
 | `<StandardButton>` | General purpose button |
-| `<BreadCrumbs>` | Breadcrumb navigation (register `BreadCrumbService` as scoped) |
+| `<BreadCrumbs>` | Breadcrumb navigation (registered by `AddThargaBlazor`) |
 | `<Title>` | Page title (reads from `BlazorOptions.Title`) |
 | `<CustomErrorBoundary>` | Error boundary with correlation ID |
 | `<ExpandableCard>` | Collapsible card |
@@ -294,7 +316,7 @@ Add a MongoDB connection string to `appsettings.json`:
 
 ```csharp
 // Service registration
-builder.Services.AddThargaBlazor(o =>
+builder.Services.AddThargaTeamBlazor(o =>
 {
     o.Title = "My App";
     o.AutoCreateFirstTeam = true;          // default: false — auto-creates a team for first-time users
@@ -310,7 +332,7 @@ builder.Services.AddThargaTeamRepository(o =>
 });
 ```
 
-> **Note:** `AddThargaBlazor()` also registers `BreadCrumbService` and `AddBlazoredLocalStorage()` — no need to add these separately.
+> **Note:** `AddThargaTeamBlazor()` internally calls `AddThargaBlazor()`, so `BreadCrumbService` and `BlazoredLocalStorage` are registered automatically.
 
 ### Implementing the required types
 
@@ -364,10 +386,10 @@ Adds API key authentication so external clients can call your API using `X-API-K
 
 ### Program.cs
 
-Extend the existing `AddThargaBlazor` call to register the API key service, and add API key authentication:
+Extend the existing `AddThargaTeamBlazor` call to register the API key service, and add API key authentication:
 
 ```csharp
-builder.Services.AddThargaBlazor(o =>
+builder.Services.AddThargaTeamBlazor(o =>
 {
     // ... existing team config ...
     o.RegisterApiKeyAdministrationService<MyApiKeyService>();
@@ -506,10 +528,10 @@ builder.Services.AddThargaTenantRoles(roles =>
 
 ### Team UI
 
-Set `ShowMemberRoles = true` in `AddThargaBlazor` options to show role assignment controls in the team management UI:
+Set `ShowMemberRoles = true` in `AddThargaTeamBlazor` options to show role assignment controls in the team management UI:
 
 ```csharp
-builder.Services.AddThargaBlazor(o =>
+builder.Services.AddThargaTeamBlazor(o =>
 {
     // ... existing config ...
     o.ShowMemberRoles = true;
@@ -592,8 +614,9 @@ using Tharga.Team.Blazor.Features.Authentication;
 using Tharga.Team.Blazor.Framework;
 using Tharga.Team.Service;
 
-// Step 1: Radzen
+// Step 1: Radzen + Blazor foundation
 builder.Services.AddRadzenComponents();
+builder.Services.AddThargaBlazor(o => o.Title = "My App");
 
 // Step 2: Authentication
 builder.AddThargaAuth();
@@ -602,7 +625,7 @@ builder.AddThargaAuth();
 builder.Services.AddThargaControllers();
 
 // Step 4: Team management
-builder.Services.AddThargaBlazor(o =>
+builder.Services.AddThargaTeamBlazor(o =>
 {
     o.Title = "My App";
     o.RegisterTeamService<MyTeamService, MyUserService>();
