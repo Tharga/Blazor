@@ -26,30 +26,18 @@ Tharga.Team.Blazor
 
 ## Getting started
 
-### WASM project (client-side only)
+See the **[Implementation Guide](docs/implementation-guide.md)** for step-by-step instructions on adding each feature to your Blazor application. Each step covers packages, Program.cs changes, _Imports.razor, configuration, and what becomes available.
 
-```csharp
-dotnet add package Tharga.Team.Blazor
+### Quick start
+
 ```
-
-### Server project (full stack)
-
-```csharp
-dotnet add package Tharga.Team.Blazor
-dotnet add package Tharga.Team.MongoDB
-dotnet add package Tharga.Team.Service
-```
-
-### Register services
-
-```csharp
-builder.Services.AddThargaBlazor(o =>
-{
-    o.Title = "My App";
-    o.RegisterTeamService<MyTeamService, MyUserService>();
-});
+dotnet add package Tharga.Blazor              # Step 1: UI components
+dotnet add package Tharga.Team.Blazor         # Step 2: Authentication + Step 4: Team management UI
+dotnet add package Tharga.Team.Service        # Step 3: API controllers + Step 5-8: Server features
+dotnet add package Tharga.Team.MongoDB        # Step 4: Team persistence
 ```
 
 ## Links
 
+- [Implementation Guide](docs/implementation-guide.md)
 - [Report an issue](https://github.com/Tharga/Platform/issues)
