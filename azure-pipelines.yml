@@ -8,7 +8,7 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   BQC.ForceNewBaseline: false
-  majorMinor: '1.2'
+  majorMinor: '2.0'
 
 stages:
 - stage: Build
@@ -30,14 +30,6 @@ stages:
         version: 10.0.x
         includePreviewVersions: false
 
-    - task: PowerShell@2
-      displayName: 'Set version environment variable'
-      inputs:
-        filePath: 'setVersionEnvironmentVariable.ps1'
-      env:
-        SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
-        BUILD_NUMBER: $(Build.BuildNumber)
-
     - task: NuGetToolInstaller@1
 
     - task: DotNetCoreCLI@2
@@ -54,7 +46,6 @@ stages:
         projects: '**/*.csproj'
         arguments: '-c Release --no-restore /p:Version=$(Build.BuildNumber)'
         versioningScheme: 'byBuildNumber'
-        versionEnvVar: 'messagesPackageVersion'
 
     - script: |
         if exist "$(Build.ArtifactStagingDirectory)\*.nupkg" del /q "$(Build.ArtifactStagingDirectory)\*.nupkg"
@@ -81,10 +72,30 @@ stages:
         buildProperties: 'PackageVersion=$(Build.BuildNumber)'
 
     - task: DotNetCoreCLI@2
+      displayName: 'Pack Tharga.Team.Blazor'
+      inputs:
+        command: 'pack'
+        packagesToPack: '**/Tharga.Team.Blazor.csproj'
+        nobuild: true
+        configuration: 'Release'
+        versioningScheme: 'off'
+        buildProperties: 'PackageVersion=$(Build.BuildNumber)'
+
+    - task: DotNetCoreCLI@2
       displayName: 'Pack Tharga.Team.MongoDB'
       inputs:
         command: 'pack'
         packagesToPack: '**/Tharga.Team.MongoDB.csproj'
+        nobuild: true
+        configuration: 'Release'
+        versioningScheme: 'off'
+        buildProperties: 'PackageVersion=$(Build.BuildNumber)'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack Tharga.Team.Service'
+      inputs:
+        command: 'pack'
+        packagesToPack: '**/Tharga.Team.Service.csproj'
         nobuild: true
         configuration: 'Release'
         versioningScheme: 'off'
@@ -110,7 +121,7 @@ stages:
 - stage: Release
   displayName: Release
   dependsOn: Build
-  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+  # condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
   jobs:
 
   - job: Release

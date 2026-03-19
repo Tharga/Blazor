@@ -1,4 +1,4 @@
-﻿namespace Tharga.Team;
+namespace Tharga.Team;
 
 public enum AccessLevel
 {

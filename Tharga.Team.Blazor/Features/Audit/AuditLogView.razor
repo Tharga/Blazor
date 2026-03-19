@@ -1,0 +1,256 @@
+@using Tharga.Team.Service.Audit
+
+@if (_mongoAvailable == null)
+{
+    <Loading />
+}
+else if (_mongoAvailable == false)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" Variant="Variant.Flat">
+        Enable MongoDB audit storage to use this view.
+    </RadzenAlert>
+}
+else
+{
+    <RadzenTabs Change="@OnTabChange">
+        <Tabs>
+            <RadzenTabsItem Text="Log">
+                @* Top-bar filters — all RadzenSelectBar multi-select *@
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.End" class="rz-mb-4 rz-mt-2" Wrap="FlexWrap.Wrap">
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="0">
+                        <RadzenLabel Text="Period" />
+                        <RadzenSelectBar @bind-Value="_datePeriod" TValue="string" Change="@OnFilterChanged" Size="ButtonSize.Small">
+                            <Items>
+                                <RadzenSelectBarItem Text="Today" Value="@("today")" />
+                                <RadzenSelectBarItem Text="This Week" Value="@("week")" />
+                                <RadzenSelectBarItem Text="This Month" Value="@("month")" />
+                                <RadzenSelectBarItem Text="All" Value="@("all")" />
+                            </Items>
+                        </RadzenSelectBar>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="0" Visible="@(_teams.Any())">
+                        <RadzenLabel Text="Team" />
+                        <RadzenSelectBar @bind-Value="_filterTeams" TValue="IEnumerable<string>" Multiple="true"
+                                         Change="@OnFilterChanged" Size="ButtonSize.Small">
+                            <Items>
+                                @foreach (var team in _teams)
+                                {
+                                    <RadzenSelectBarItem Text="@team.Name" Value="@team.Key" />
+                                }
+                            </Items>
+                        </RadzenSelectBar>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="0" Visible="@(_sources.Any())">
+                        <RadzenLabel Text="Source" />
+                        <RadzenSelectBar @bind-Value="_filterSources" TValue="IEnumerable<string>" Multiple="true"
+                                         Change="@OnFilterChanged" Size="ButtonSize.Small">
+                            <Items>
+                                @foreach (var s in _sources)
+                                {
+                                    <RadzenSelectBarItem Text="@s" Value="@s" />
+                                }
+                            </Items>
+                        </RadzenSelectBar>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="0" Visible="@(_features.Any())">
+                        <RadzenLabel Text="Feature" />
+                        <RadzenSelectBar @bind-Value="_filterFeatures" TValue="IEnumerable<string>" Multiple="true"
+                                         Change="@OnFilterChanged" Size="ButtonSize.Small">
+                            <Items>
+                                @foreach (var f in _features)
+                                {
+                                    <RadzenSelectBarItem Text="@f" Value="@f" />
+                                }
+                            </Items>
+                        </RadzenSelectBar>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="0" Visible="@(_actions.Any())">
+                        <RadzenLabel Text="Action" />
+                        <RadzenSelectBar @bind-Value="_filterActions" TValue="IEnumerable<string>" Multiple="true"
+                                         Change="@OnFilterChanged" Size="ButtonSize.Small">
+                            <Items>
+                                @foreach (var a in _actions)
+                                {
+                                    <RadzenSelectBarItem Text="@a" Value="@a" />
+                                }
+                            </Items>
+                        </RadzenSelectBar>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="0">
+                        <RadzenLabel Text="Event" />
+                        <RadzenSelectBar @bind-Value="_filterEventTypes" TValue="IEnumerable<AuditEventType>" Multiple="true"
+                                         Change="@OnFilterChanged" Size="ButtonSize.Small">
+                            <Items>
+                                @foreach (var et in EventTypeOptions)
+                                {
+                                    <RadzenSelectBarItem Text="@et.ToString()" Value="@et" />
+                                }
+                            </Items>
+                        </RadzenSelectBar>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="0">
+                        <RadzenLabel Text="OK" />
+                        <RadzenSelectBar @bind-Value="_filterSuccess" TValue="IEnumerable<bool>" Multiple="true"
+                                         Change="@OnFilterChanged" Size="ButtonSize.Small">
+                            <Items>
+                                <RadzenSelectBarItem Text="Success" Value="@true" />
+                                <RadzenSelectBarItem Text="Failure" Value="@false" />
+                            </Items>
+                        </RadzenSelectBar>
+                    </RadzenStack>
+                    <RadzenSplitButton Text="Export" Icon="download" Click="@(_ => ExportAsync("csv"))" Size="ButtonSize.Small">
+                        <ChildContent>
+                            <RadzenSplitButtonItem Text="CSV" Value="csv" Icon="table_view" />
+                            <RadzenSplitButtonItem Text="JSON" Value="json" Icon="data_object" />
+                        </ChildContent>
+                    </RadzenSplitButton>
+                </RadzenStack>
+
+                @* Data grid with server-side paging *@
+                <RadzenDataGrid @ref="_grid" TItem="AuditEntry"
+                                Data="@_entries" Count="@_totalCount"
+                                LoadData="@OnLoadData"
+                                AllowSorting="true" AllowPaging="true" AllowFiltering="true"
+                                FilterMode="FilterMode.Simple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                PageSize="@_pageSize" PageSizeOptions="@PageSizeOptionsValues"
+                                ShowPagingSummary="true" PagingSummaryFormat="Showing {0}-{1} of {2}"
+                                Style="max-height:600px">
+                    <Columns>
+                        <RadzenDataGridColumn Title="Time" Width="160px" Filterable="false" Sortable="true"
+                                              Property="@nameof(AuditEntry.Timestamp)">
+                            <Template><DateTimeView Date="context.Timestamp" /></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Team" Width="120px"
+                                              Filterable="false" Sortable="false"
+                                              Visible="@(string.IsNullOrEmpty(TeamKey))">
+                            <Template>@GetTeamName(context.TeamKey)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Caller" Property="@nameof(AuditEntry.CallerIdentity)" Width="180px"
+                                              Sortable="true" />
+                        <RadzenDataGridColumn Title="Source" Width="70px" Filterable="false" Sortable="false">
+                            <Template>@context.CallerSource</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Scope" Property="@nameof(AuditEntry.ScopeChecked)" Width="140px"
+                                              Filterable="false" Sortable="false" />
+                        <RadzenDataGridColumn Title="Method" Property="@nameof(AuditEntry.MethodName)" Width="140px"
+                                              Sortable="true" />
+                        <RadzenDataGridColumn Title="Duration" Property="@nameof(AuditEntry.DurationMs)" Width="80px"
+                                              Filterable="false" Sortable="true" TextAlign="TextAlign.Right"
+                                              HeaderCssClass="rz-text-align-end">
+                            <Template>@(context.DurationMs) ms</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Event" Width="110px" Filterable="false" Sortable="false">
+                            <Template>@context.EventType</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="OK" Width="50px" Filterable="false" Sortable="false">
+                            <Template>
+                                <RadzenIcon Icon="@(context.Success ? "check_circle" : "error")"
+                                            Style="@($"color: {(context.Success ? "green" : "red")}")" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-mt-1">@_totalCount total entries</RadzenText>
+            </RadzenTabsItem>
+
+            <RadzenTabsItem Text="Usage">
+                @if (_chartEntries.Any())
+                {
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-mt-2">
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">Calls over time</RadzenText>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" class="rz-mb-2">
+                                <RadzenRadioButtonList @bind-Value="_timeGrouping" TValue="string" Orientation="Orientation.Horizontal">
+                                    <Items>
+                                        <RadzenRadioButtonListItem Text="Hourly" Value="@("hourly")" />
+                                        <RadzenRadioButtonListItem Text="Daily" Value="@("daily")" />
+                                    </Items>
+                                </RadzenRadioButtonList>
+                            </RadzenStack>
+                            <RadzenChart Style="height:300px">
+                                <RadzenLineSeries Data="@GetCallsOverTime()" CategoryProperty="Period" ValueProperty="Count" Title="Calls" />
+                                <RadzenCategoryAxis><RadzenAxisTitle Text="Time" /></RadzenCategoryAxis>
+                                <RadzenValueAxis><RadzenAxisTitle Text="Count" /></RadzenValueAxis>
+                            </RadzenChart>
+                        </RadzenCard>
+
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">Success vs Failure</RadzenText>
+                            <RadzenChart Style="height:300px">
+                                <RadzenPieSeries Data="@GetSuccessFailure()" CategoryProperty="Label" ValueProperty="Count" Title="Status" />
+                            </RadzenChart>
+                        </RadzenCard>
+
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">By Feature</RadzenText>
+                            <RadzenChart Style="height:300px">
+                                <RadzenBarSeries Data="@GetByFeature()" CategoryProperty="Label" ValueProperty="Count" Title="Calls" />
+                                <RadzenCategoryAxis />
+                                <RadzenValueAxis><RadzenAxisTitle Text="Count" /></RadzenValueAxis>
+                            </RadzenChart>
+                        </RadzenCard>
+
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">Top Callers</RadzenText>
+                            <RadzenChart Style="height:300px">
+                                <RadzenBarSeries Data="@GetTopCallers()" CategoryProperty="Label" ValueProperty="Count" Title="Calls" />
+                                <RadzenCategoryAxis />
+                                <RadzenValueAxis><RadzenAxisTitle Text="Count" /></RadzenValueAxis>
+                            </RadzenChart>
+                        </RadzenCard>
+                    </RadzenStack>
+                }
+                else
+                {
+                    <RadzenText class="rz-mt-2">No data available for the selected filters.</RadzenText>
+                }
+            </RadzenTabsItem>
+
+            <RadzenTabsItem Text="Performance">
+                @if (_chartEntries.Any())
+                {
+                    <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-mt-2">
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">Average Response Time</RadzenText>
+                            <RadzenChart Style="height:300px">
+                                <RadzenLineSeries Data="@GetResponseTimeOverTime()" CategoryProperty="Period" ValueProperty="Value" Title="Avg ms" />
+                                <RadzenCategoryAxis />
+                                <RadzenValueAxis><RadzenAxisTitle Text="ms" /></RadzenValueAxis>
+                            </RadzenChart>
+                        </RadzenCard>
+
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">Response Time by Feature</RadzenText>
+                            <RadzenChart Style="height:300px">
+                                <RadzenBarSeries Data="@GetResponseTimeByFeature()" CategoryProperty="Period" ValueProperty="Value" Title="Avg ms" />
+                                <RadzenCategoryAxis />
+                                <RadzenValueAxis><RadzenAxisTitle Text="ms" /></RadzenValueAxis>
+                            </RadzenChart>
+                        </RadzenCard>
+
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">Slowest Operations (Top 10)</RadzenText>
+                            <RadzenDataGrid Data="@GetSlowest()" TItem="AuditEntry" AllowSorting="false" PageSize="10" Style="max-height:400px">
+                                <Columns>
+                                    <RadzenDataGridColumn Title="Time" Width="160px">
+                                        <Template><DateTimeView Date="context.Timestamp" /></Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Feature" Property="@nameof(AuditEntry.Feature)" Width="100px" />
+                                    <RadzenDataGridColumn Title="Action" Property="@nameof(AuditEntry.Action)" Width="80px" />
+                                    <RadzenDataGridColumn Title="Method" Property="@nameof(AuditEntry.MethodName)" Width="120px" />
+                                    <RadzenDataGridColumn Title="Duration (ms)" Property="@nameof(AuditEntry.DurationMs)" Width="100px" TextAlign="TextAlign.End" />
+                                    <RadzenDataGridColumn Title="Caller" Property="@nameof(AuditEntry.CallerIdentity)" Width="160px" />
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenCard>
+                    </RadzenStack>
+                }
+                else
+                {
+                    <RadzenText class="rz-mt-2">No data available for the selected filters.</RadzenText>
+                }
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+}

@@ -15,5 +15,7 @@ public interface ITeamRepository<TTeamEntity, TMember> : IRepository
     Task AddMemberAsync(string teamKey, TMember member);
     Task RemoveMemberAsync(string teamKey, string userKey);
     Task SetMemberRoleAsync(string teamKey, string userKey, AccessLevel accessLevel);
+    Task SetMemberTenantRolesAsync(string teamKey, string userKey, string[] tenantRoles);
+    Task SetMemberScopeOverridesAsync(string teamKey, string userKey, string[] scopeOverrides);
     Task<ITeam> SetInvitationResponseAsync(string teamKey, string userKey, string inviteKey, bool accept);
 }
