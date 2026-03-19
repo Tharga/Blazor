@@ -5,14 +5,14 @@ using Tharga.Team.Blazor.Framework;
 
 namespace Tharga.Team.Blazor.Tests;
 
-public class AddThargaBlazorTests
+public class AddThargaTeamBlazorTests
 {
     [Fact]
-    public void AddThargaBlazor_RegistersBlazorOptionsWithTitle()
+    public void AddThargaTeamBlazor_RegistersBlazorOptionsWithTitle()
     {
         var services = new ServiceCollection();
 
-        services.AddThargaBlazor(o => o.Title = "My App");
+        services.AddThargaTeamBlazor(o => o.Title = "My App");
 
         var provider = services.BuildServiceProvider();
         var options = provider.GetRequiredService<IOptions<BlazorOptions>>();
@@ -20,14 +20,31 @@ public class AddThargaBlazorTests
     }
 
     [Fact]
-    public void AddThargaBlazor_WithoutTitle_RegistersBlazorOptionsWithNullTitle()
+    public void AddThargaTeamBlazor_WithoutTitle_RegistersBlazorOptionsWithNullTitle()
     {
         var services = new ServiceCollection();
 
-        services.AddThargaBlazor();
+        services.AddThargaTeamBlazor();
 
         var provider = services.BuildServiceProvider();
         var options = provider.GetRequiredService<IOptions<BlazorOptions>>();
         Assert.Null(options.Value.Title);
+    }
+
+    [Fact]
+    public void AddThargaTeamBlazor_RegistersThargaBlazorOptions()
+    {
+        var services = new ServiceCollection();
+
+        services.AddThargaTeamBlazor(o =>
+        {
+            o.Title = "Team App";
+            o.AutoCreateFirstTeam = true;
+        });
+
+        var provider = services.BuildServiceProvider();
+        var teamOptions = provider.GetRequiredService<IOptions<ThargaBlazorOptions>>();
+        Assert.Equal("Team App", teamOptions.Value.Title);
+        Assert.True(teamOptions.Value.AutoCreateFirstTeam);
     }
 }

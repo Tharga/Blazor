@@ -15,13 +15,14 @@ A suite of NuGet packages for building multi-tenant Blazor applications with tea
 ## Dependency graph
 
 ```
-Tharga.Team                          (plain .NET)
-     |           |            |
-Tharga.Blazor  Tharga.Team.MongoDB  Tharga.Team.Service
-(generic UI)   (+ Tharga.MongoDB)   (+ Tharga.MongoDB, ASP.NET Core)
-     |
-Tharga.Team.Blazor
-(+ Tharga.Team, Tharga.Team.Service)
+Tharga.Team ── plain .NET, no external dependencies
+├── Tharga.Blazor ── generic Blazor UI components
+│   └── Tharga.Team.Blazor ── team management UI
+│       └── + Tharga.Team.Service
+├── Tharga.Team.MongoDB ── persistence layer
+│   └── + Tharga.MongoDB
+└── Tharga.Team.Service ── server-side API + auth
+    └── + Tharga.MongoDB, ASP.NET Core
 ```
 
 ## Getting started

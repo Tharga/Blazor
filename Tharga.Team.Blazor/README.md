@@ -55,7 +55,7 @@ builder.AddThargaAuth(o =>
 ## Team management
 
 ```csharp
-builder.Services.AddThargaBlazor(o =>
+builder.Services.AddThargaTeamBlazor(o =>
 {
     o.Title = "My App";
     o.RegisterTeamService<MyTeamService, MyUserService>();

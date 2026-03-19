@@ -3,7 +3,11 @@
     "allow": [
       "Bash(xargs ls -la)",
       "Bash(xargs grep -l \"NotificationService\\\\|ActionButton\")",
-      "Bash(dotnet build Tharga.Blazor/Tharga.Blazor.csproj -c Release --no-restore)"
+      "Bash(dotnet build Tharga.Blazor/Tharga.Blazor.csproj -c Release --no-restore)",
+      "Bash(git restore:*)",
+      "Bash(git checkout:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet package:*)"
     ]
   }
 }
