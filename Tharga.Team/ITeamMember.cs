@@ -8,4 +8,6 @@ public interface ITeamMember
     public DateTime? LastSeen { get; }
     public MembershipState? State { get; }
     public AccessLevel AccessLevel { get; }
+    public string[] TenantRoles { get; }
+    public string[] ScopeOverrides { get; }
 }
