@@ -27,6 +27,14 @@ public record ThargaBlazorOptions : BlazorOptions
     public bool ShowScopeOverrides { get; set; } = false;
 
     /// <summary>
+    /// When true, skips decorating AuthenticationStateProvider with
+    /// TeamClaimsAuthenticationStateProvider. Use this for SSR-based apps
+    /// that use IClaimsTransformation instead of JS-based claim augmentation.
+    /// Default is false.
+    /// </summary>
+    public bool SkipAuthStateDecoration { get; set; } = false;
+
+    /// <summary>
     /// Add types for team and user services.
     /// </summary>
     /// <typeparam name="TServiceBase"></typeparam>

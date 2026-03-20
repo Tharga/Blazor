@@ -32,25 +32,28 @@ public static class ThargaBlazorRegistration
                 services.AddScoped(typeof(IApiKeyAdministrationService), sp => sp.GetRequiredService(o._apiKeyService));
             }
 
-            // Decorate the existing AuthenticationStateProvider with team claims augmentation.
-            // Move the current registration to a keyed service so the wrapper can resolve it.
-            var existing = services.LastOrDefault(d => d.ServiceType == typeof(AuthenticationStateProvider));
-            if (existing != null)
+            if (!o.SkipAuthStateDecoration)
             {
-                services.Remove(existing);
+                // Decorate the existing AuthenticationStateProvider with team claims augmentation.
+                // Move the current registration to a keyed service so the wrapper can resolve it.
+                var existing = services.LastOrDefault(d => d.ServiceType == typeof(AuthenticationStateProvider));
+                if (existing != null)
+                {
+                    services.Remove(existing);
 
-                if (existing.ImplementationType != null)
-                {
-                    services.AddKeyedScoped(typeof(AuthenticationStateProvider), "inner-auth-state", existing.ImplementationType);
+                    if (existing.ImplementationType != null)
+                    {
+                        services.AddKeyedScoped(typeof(AuthenticationStateProvider), "inner-auth-state", existing.ImplementationType);
+                    }
+                    else if (existing.ImplementationFactory != null)
+                    {
+                        var factory = existing.ImplementationFactory;
+                        services.AddKeyedScoped("inner-auth-state", (sp, _) => (AuthenticationStateProvider)factory(sp));
+                    }
                 }
-                else if (existing.ImplementationFactory != null)
-                {
-                    var factory = existing.ImplementationFactory;
-                    services.AddKeyedScoped("inner-auth-state", (sp, _) => (AuthenticationStateProvider)factory(sp));
-                }
+
+                services.AddScoped<AuthenticationStateProvider, TeamClaimsAuthenticationStateProvider>();
             }
-
-            services.AddScoped<AuthenticationStateProvider, TeamClaimsAuthenticationStateProvider>();
         }
 
         if (o._apiKeyService != null)
