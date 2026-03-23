@@ -11,10 +11,13 @@
       "Bash(cat:*)",
       "Skill(update-config)",
       "Skill(update-config:*)",
-      "Read(//c/dev/tharga/**)"
+      "Read(//c/dev/tharga/**)",
+      "Bash(grep -r [Inject] --include=*.razor.cs --include=*.cs .)",
+      "Bash(grep -r \"entry.*assembly\\\\|prefix.*assembly\\\\|name.*split\" c:/dev/tharga/Toolkit/Platform/docs/ c:/dev/tharga/Toolkit/Platform/*.md)"
     ],
     "additionalDirectories": [
-      "c:\\dev\\tharga\\Starter\\.claude"
+      "c:\\dev\\tharga\\Starter\\.claude",
+      "c:\\dev\\tharga\\Toolkit\\Platform\\.claude"
     ]
   }
 }
