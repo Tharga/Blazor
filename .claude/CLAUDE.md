@@ -94,4 +94,4 @@ When all planned steps are done:
 - `.claude/feature.md` is archived to `.claude/features-done/<feature-name>.md` and both `.claude/feature.md` and `.claude/plan.md` should be deleted
 - Remove the corresponding file from `.claude/features-planned/` if one exists
 - A final commit is made with message: `feat: <feature-name> complete`
-- Merge to originating branch and delete feature branch only when the user explicitly asks
+- Merge to originating branch using `git merge --no-ff` (always create a merge commit) and delete feature branch only when the user explicitly asks
