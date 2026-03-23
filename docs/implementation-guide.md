@@ -1,7 +1,44 @@
 # Tharga Platform — Implementation Guide
 
 Step-by-step instructions for adding Tharga Platform features to a Blazor application.
-Each step is a self-contained feature that builds on previous steps. Add only what you need.
+
+## Recommended: Single-call setup
+
+For most applications, use `AddThargaPlatform` to register everything in one call:
+
+```csharp
+using Tharga.Team.Blazor.Framework;
+
+builder.AddThargaPlatform(o =>
+{
+    o.Blazor.Title = "My App";
+    o.Blazor.RegisterTeamService<MyTeamService, MyUserService>();
+
+    // Optional: scopes, roles, audit
+    o.ConfigureScopes = scopes => { /* ... */ };
+    o.ConfigureTenantRoles = roles => { /* ... */ };
+    o.Audit = new AuditOptions();
+});
+
+// MongoDB persistence (always separate — requires your entity types)
+builder.Services.AddMongoDB(o => { /* connection config */ });
+builder.Services.AddThargaTeamRepository(o =>
+{
+    o.UseUserEntity<MyUserEntity>();
+    o.UseTeamEntity<MyTeamEntity, MyTeamMember>();
+});
+
+var app = builder.Build();
+app.UseThargaPlatform();
+```
+
+This replaces Steps 1–8 below. Set sub-options to `null` to skip features you don't need (e.g. `o.Controllers = null`, `o.ApiKey = null`).
+
+---
+
+## Advanced: Step-by-step setup
+
+Use the individual `Add*` methods when you need partial or custom registration. Each step is a self-contained feature that builds on previous steps. Add only what you need.
 
 > **Secrets:** Several steps require sensitive configuration values (client IDs, connection strings, API keys).
 > These should never be committed to source control. Use **Manage User Secrets** in Visual Studio
