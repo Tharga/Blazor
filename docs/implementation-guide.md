@@ -372,6 +372,8 @@ See `Tharga.Team.MongoDB` base classes (`TeamEntityBase<T>`, `TeamMemberBase`, `
 
 The `TeamClaimsAuthenticationStateProvider` automatically augments the authentication state with team claims (`TeamKey`, `AccessLevel`, scopes) based on the selected team.
 
+> **Note:** Team management works without scopes or tenant roles. The `ShowMemberRoles` and `ShowScopeOverrides` options only take effect when the corresponding registries are registered (Step 6 and Step 7). Without them, the team UI shows access levels only — which is sufficient for many applications.
+
 ### Verification
 
 After login, the team selector should appear. Creating a team should persist to MongoDB. Switching teams should update the claims.
