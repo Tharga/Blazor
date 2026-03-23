@@ -5,7 +5,6 @@
 @using Tharga.Team.Blazor.Features.Team
 @using Microsoft.AspNetCore.Components.Authorization
 @inject ITeamStateService TeamStateService
-@inject IApiKeyManagementService ApiKeyManagementService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IOptions<ApiKeyOptions> ApiKeyOptionsAccessor
 @inject IServiceProvider ServiceProvider
@@ -13,7 +12,13 @@
 @inject DialogService DialogService
 @inject NotificationService NotificationService
 
-@if (!_hasAccess)
+@if (_apiKeyServiceMissing)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" Variant="Variant.Flat">
+        API key management is not configured. Register <code>IApiKeyManagementService</code> in Program.cs to enable this view.
+    </RadzenAlert>
+}
+else if (!_hasAccess)
 {
     <RadzenText>Access denied. You need the API key management permission to view this page.</RadzenText>
 }
@@ -108,6 +113,8 @@ else
 }
 
 @code {
+    private bool _apiKeyServiceMissing;
+    private IApiKeyManagementService _apiKeyManagementService;
     private bool _hasAccess;
     private ITeam _selectedTeam;
     private ApiKeyModel[] _keys;
@@ -122,6 +129,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _apiKeyManagementService = ServiceProvider.GetService<IApiKeyManagementService>();
+        if (_apiKeyManagementService == null)
+        {
+            _apiKeyServiceMissing = true;
+            return;
+        }
+
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _hasAccess = user.HasClaim(TeamClaimTypes.Scope, ApiKeyScopes.Manage);
@@ -141,7 +155,7 @@ else
     {
         if (_selectedTeam?.Key == null) return;
 
-        var keys = await ApiKeyManagementService.GetKeysAsync(_selectedTeam.Key).ToArrayAsync();
+        var keys = await _apiKeyManagementService.GetKeysAsync(_selectedTeam.Key).ToArrayAsync();
         _keys = keys
             .Select(x =>
             {
@@ -166,7 +180,7 @@ else
     {
         try
         {
-            var created = await ApiKeyManagementService.CreateKeyAsync(_selectedTeam.Key, _newName, _newAccessLevel, null, _newExpiryDate);
+            var created = await _apiKeyManagementService.CreateKeyAsync(_selectedTeam.Key, _newName, _newAccessLevel, null, _newExpiryDate);
             _newName = "";
             _newAccessLevel = AccessLevel.User;
             _newExpiryDate = _options.MaxExpiryDays.HasValue
@@ -187,7 +201,7 @@ else
         var result = await DialogService.Confirm($"The {context.Name} key will be regenerated.", "Confirm regenerate API key");
         if (result != true) return;
 
-        var refreshed = await ApiKeyManagementService.RefreshKeyAsync(_selectedTeam.Key, context.Key);
+        var refreshed = await _apiKeyManagementService.RefreshKeyAsync(_selectedTeam.Key, context.Key);
         await ReloadData();
         ShowKeyOnce(refreshed);
     }
@@ -242,7 +256,7 @@ else
         var result = await DialogService.Confirm($"The {context.Name} key will be locked. After that, it cannot be retrieved.", "Confirm lock API key");
         if (result != true) return;
 
-        await ApiKeyManagementService.LockKeyAsync(_selectedTeam.Key, context.Key);
+        await _apiKeyManagementService.LockKeyAsync(_selectedTeam.Key, context.Key);
         await ReloadData();
     }
 
@@ -253,7 +267,7 @@ else
 
         try
         {
-            await ApiKeyManagementService.DeleteKeyAsync(_selectedTeam.Key, context.Key);
+            await _apiKeyManagementService.DeleteKeyAsync(_selectedTeam.Key, context.Key);
             await ReloadData();
             NotificationService.Notify(NotificationSeverity.Success, "API key deleted");
         }
