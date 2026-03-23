@@ -1,4 +1,5 @@
 ﻿@using System.Text.Json
+@using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Options
 @using Microsoft.JSInterop
 @using Tharga.Team
@@ -15,8 +16,7 @@
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 @inject IOptions<ThargaBlazorOptions> BlazorOptions
-@inject IScopeRegistry ScopeRegistry
-@inject ITenantRoleRegistry TenantRoleRegistry
+@inject IServiceProvider ServiceProvider
 
 @if (_teams == null)
 {
@@ -174,6 +174,8 @@ else
     private bool _canRemove;
     private bool _canChangeRole;
     private string[] _allScopeNames = Array.Empty<string>();
+    private IScopeRegistry _scopeRegistry;
+    private ITenantRoleRegistry _tenantRoleRegistry;
 
     protected override async Task OnInitializedAsync()
     {
@@ -184,12 +186,15 @@ else
         _canRemove = claims.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRemove);
         _canChangeRole = claims.HasClaim(TeamClaimTypes.Scope, TeamScopes.MemberRole);
 
-        _showMemberRoles = BlazorOptions.Value.ShowMemberRoles;
-        _showScopeOverrides = BlazorOptions.Value.ShowScopeOverrides;
+        _scopeRegistry = ServiceProvider.GetService<IScopeRegistry>();
+        _tenantRoleRegistry = ServiceProvider.GetService<ITenantRoleRegistry>();
+
+        _showMemberRoles = BlazorOptions.Value.ShowMemberRoles && _tenantRoleRegistry != null;
+        _showScopeOverrides = BlazorOptions.Value.ShowScopeOverrides && _scopeRegistry != null;
         if (_showMemberRoles)
-            _availableRoles = TenantRoleRegistry.All.Select(r => r.Name).ToArray();
+            _availableRoles = _tenantRoleRegistry!.All.Select(r => r.Name).ToArray();
         if (_showMemberRoles || _showScopeOverrides)
-            _allScopeNames = ScopeRegistry.All.Select(s => s.Name).ToArray();
+            _allScopeNames = _scopeRegistry!.All.Select(s => s.Name).ToArray();
 
         _users = await UserService.GetAsync().ToArrayAsync();
         _user = await UserService.GetCurrentUserAsync();
@@ -201,12 +206,15 @@ else
 
     private string GetEffectiveScopesWithOriginText(TMember member)
     {
-        var accessLevelScopes = ScopeRegistry.GetScopesForAccessLevel(member.AccessLevel);
-        var roleScopes = TenantRoleRegistry.GetScopesForRoles(member.TenantRoles ?? Array.Empty<string>());
+        if (_scopeRegistry == null) return "";
+
+        var accessLevelScopes = _scopeRegistry.GetScopesForAccessLevel(member.AccessLevel);
+        var roleScopes = _tenantRoleRegistry?.GetScopesForRoles(member.TenantRoles ?? Array.Empty<string>())
+            ?? (IReadOnlyList<string>)Array.Empty<string>();
         var overrides = member.ScopeOverrides ?? Array.Empty<string>();
 
         var lines = new List<string>();
-        var allScopes = ScopeRegistry.GetEffectiveScopes(member.AccessLevel, member.TenantRoles, member.ScopeOverrides);
+        var allScopes = _scopeRegistry.GetEffectiveScopes(member.AccessLevel, member.TenantRoles, member.ScopeOverrides);
         foreach (var scope in allScopes)
         {
             var origin = overrides.Contains(scope) ? "override"
