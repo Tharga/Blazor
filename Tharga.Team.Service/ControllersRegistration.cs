@@ -77,11 +77,14 @@ public static class ControllersRegistration
 
     /// <summary>
     /// Registers the default API key storage, administration service, and hashing service.
-    /// The MongoDB repository is auto-registered by Tharga.MongoDB.
+    /// Also registers the MongoDB repository types explicitly so they are available
+    /// regardless of the entry assembly name prefix used by the consumer.
     /// </summary>
     public static IServiceCollection AddThargaApiKeys(this IServiceCollection services)
     {
         services.RegisterApiKeyService();
+        services.AddTransient<IApiKeyRepository, ApiKeyRepository>();
+        services.AddTransient<IApiKeyRepositoryCollection, ApiKeyRepositoryCollection>();
         return services;
     }
 
