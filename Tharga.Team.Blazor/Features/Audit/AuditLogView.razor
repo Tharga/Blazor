@@ -1,6 +1,12 @@
 @using Tharga.Team.Service.Audit
 
-@if (_mongoAvailable == null)
+@if (_auditLoggerMissing)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" Variant="Variant.Flat">
+        Audit logging is not configured. Call <code>AddThargaAuditLogging()</code> in Program.cs to enable this view.
+    </RadzenAlert>
+}
+else if (_mongoAvailable == null)
 {
     <Loading />
 }
