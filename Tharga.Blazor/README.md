@@ -3,20 +3,25 @@
 ![Nuget](https://img.shields.io/nuget/dt/Tharga.Blazor)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Generic reusable Blazor UI components. Works with both **Blazor Server** and **Blazor WebAssembly**. Built on [Radzen.Blazor](https://blazor.radzen.com/).
+Drop-in Blazor UI components for common application needs — buttons with busy states, breadcrumb navigation, error boundaries, expandable cards, and more. Works with both **Blazor Server** and **Blazor WebAssembly**.
 
-No team or authentication dependencies — this package is for UI components only. For authentication and team management, see [Tharga.Team.Blazor](https://www.nuget.org/packages/Tharga.Team.Blazor).
+Built on [Radzen.Blazor](https://blazor.radzen.com/). Targets **.NET 9** and **.NET 10**.
 
-## Components
+## Quick Start
 
-- **Buttons** - `ActionButton`, `CancelButton`, `CopyButton`, `StandardButton` with built-in busy states and error handling.
-- **Breadcrumbs** - `BreadCrumbService` with virtual segments, query parameter segments, and segment relinking.
-- **Error handling** - `CustomErrorBoundary` with correlation ID logging.
-- **Layout** - `ExpandableCard`, `Loading`, `Title`, `DateTimeView`, `TimeSpanView`.
+```bash
+dotnet add package Tharga.Blazor
+```
 
-## Related packages
+```csharp
+builder.Services.AddThargaBlazor(o => o.Title = "My Application");
+```
 
-| Package | Description |
-|---------|-------------|
-| [Tharga.Team.Blazor](https://www.nuget.org/packages/Tharga.Team.Blazor) | Team management components (depends on this package) |
-| [Tharga.Team](https://www.nuget.org/packages/Tharga.Team) | Domain models and authorization primitives |
+## What's Included
+
+- **Buttons** — `ActionButton`, `CancelButton`, `CopyButton`, `StandardButton` with built-in busy states, error handling, and typed styling.
+- **Breadcrumbs** — Route-aware breadcrumb trail with virtual segments, query parameter segments, and programmatic control.
+- **Error Handling** — `CustomErrorBoundary` with correlation ID logging and recovery.
+- **Layout** — `ExpandableCard`, `Loading`, `Title`, `DateTimeView`, `TimeSpanView`.
+
+For full documentation and usage examples, see the [GitHub README](https://github.com/Tharga/Toolkit-Blazor).
