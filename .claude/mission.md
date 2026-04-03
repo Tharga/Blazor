@@ -1,6 +1,11 @@
 # Mission: Tharga.Blazor
 
-Shared Blazor components.
+Shared Blazor components with Radzen UI.
+
+- **Type**: Tool
 
 ## External References
-- **Backlog**: `c:\Users\danie\SynologyDrive\Documents\Notes\Tharga\Toolkit\Blazor.md`
+- **Shared instructions**: `$DOC_ROOT/Tharga/shared-instructions.md`
+- **Plan directory**: `$DOC_ROOT/Tharga/plans/Toolkit/Blazor`
+- **Backlog**: `$DOC_ROOT/Tharga/Toolkit/Blazor.md`
+- **Incoming requests**: `$DOC_ROOT/Tharga/Requests.md` — check sections "Tharga.Blazor" on startup
