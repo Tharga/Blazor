@@ -2,11 +2,14 @@
 @inject IJSRuntime Js
 @inject NotificationService NotificationService
 
-<StandardButton Text="Copy" Icon="content_copy" Click="CopyAction" />
+<StandardButton Text="Copy" Icon="content_copy" Click="CopyAction" Size="@Size" />
 
 @code {
     [Parameter]
     public string Content { get; set; }
+
+    [Parameter]
+    public ButtonSize Size { get; set; }
 
     private async Task CopyAction()
     {
