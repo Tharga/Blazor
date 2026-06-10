@@ -21,7 +21,7 @@ Mirrors Tharga.Test commit `d6b9efb`.
 - [x] 15. Update `README.md` — add link to `blazor.tharga.net`
 - [x] 16. Commit settings.json consolidation (separate commit on this branch)
 - [x] 17. Build + test locally; verify clean (0 warnings, 24/24 tests, `docfx docs/docfx.json` builds with 0 errors)
-- [~] 18. Push branch + open PR `feature/icon-and-docs` → `master`
+- [x] 18. Push branch + open PR `feature/icon-and-docs` → `master` — PR [#7](https://github.com/Tharga/Blazor/pull/7)
 
 ## Last session
-All implementation steps done. DocFX builds locally (5 conceptual + 24 API refs). Ready to push and open PR.
+All implementation steps done. Feature branch pushed and PR #7 opened against master. Waiting on user confirmation + DNS setup (`blazor.tharga.net` → `tharga.github.io`) before closing the feature.
