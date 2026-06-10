@@ -2,10 +2,11 @@
   "attribution": {
     "commit": "",
     "pr": ""
-  },  
+  },
   "permissions": {
     "allow": [
       "Bash(git:*)",
+      "Bash(gh:*)",
       "Bash(cd:*)",
       "Bash(dotnet:*)",
       "Bash(mkdir:*)",
@@ -13,12 +14,14 @@
       "Bash(rm:*)",
       "Bash(ls:*)",
       "Bash(cat:*)",
+      "Bash(echo:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(diff:*)",
+      "Bash(docfx:*)",
       "Skill(update-config)",
-      "Skill(update-config:*)",
-      "Read(//c/dev/tharga/**)",
-      "Bash(grep -r [Inject] --include=*.razor.cs --include=*.cs .)",
-      "Bash(rm .claude/feature.md)",
-      "Bash(rm .claude/plan.md)"
+      "Skill(update-config:*)"
     ],
     "additionalDirectories": [
     ]

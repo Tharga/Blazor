@@ -5,6 +5,8 @@
 
 Generic reusable Blazor UI components. Works with both **Blazor Server** and **Blazor WebAssembly**. Built on [Radzen.Blazor](https://blazor.radzen.com/).
 
+Documentation: [blazor.tharga.net](https://blazor.tharga.net)
+
 ## Installation
 
 ```bash
