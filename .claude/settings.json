@@ -1,29 +1,41 @@
 {
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
+  "attribution": { "commit": "", "pr": "" },
   "permissions": {
+    "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(git:*)",
-      "Bash(gh:*)",
-      "Bash(cd:*)",
-      "Bash(dotnet:*)",
-      "Bash(mkdir:*)",
-      "Bash(cp:*)",
-      "Bash(rm:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(echo:*)",
-      "Bash(grep:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(diff:*)",
-      "Bash(docfx:*)",
-      "Skill(update-config)",
-      "Skill(update-config:*)"
+      "Bash(*)",
+      "Read",
+      "Edit",
+      "Write",
+      "Skill(update-config:*)",
+      "WebFetch(domain:api.nuget.org)",
+      "WebFetch(domain:github.com)"
     ],
-    "additionalDirectories": [
+    "ask": [
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git -C * push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh release create *)",
+      "Bash(npm publish *)",
+      "Bash(dotnet nuget push *)",
+      "Edit(.claude/**)",
+      "Write(.claude/**)"
+    ],
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(gh repo delete *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git -C * push --force *)",
+      "Bash(git -C * push -f *)",
+      "Bash(git -C * push --force-with-lease *)",
+      "Bash(git reset --hard *)",
+      "Bash(git -C * reset --hard *)"
     ]
   }
 }
