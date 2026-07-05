@@ -4,8 +4,9 @@
 1. Run `git status` to check for uncommitted changes
    - If uncommitted changes exist, alert me immediately and stop
    - Do not proceed until I have confirmed how to handle them (commit, stash, or discard)
-2. Check if `.claude/mission.md` exists and read it.
-   - Follow **all** file references listed under "External References" — read each one (shared-instructions, backlog, incoming requests, etc.)
+2. Read `.claude/mission.md` in full. It lists external references under two categories:
+   - **`shared-instructions.md` is binding rules, not data.** Read it in full and treat every rule inside as if it were written directly in this CLAUDE.md. Whenever the user asks a question (requests/TODOs/features/etc.), re-check the relevant section of shared-instructions.md before answering — do not answer from the primary data source alone. If `mission.md` has an override, the override wins.
+   - **Data references** (backlog, incoming requests, plans, etc.) are sources to survey — read them for content.
    - If a path uses `$DOC_ROOT`, resolve it via the environment variable defined in `~/.claude/settings.json`.
 3. Check if `plan/` exists in the project root.
    - If `plan/plan.md` exists, summarize what has been done and what the next step is.
