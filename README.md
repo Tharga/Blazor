@@ -97,7 +97,7 @@ Catches unhandled exceptions, logs them with a correlation ID, and displays an e
 
 ### Layout & Display
 
-- **`ExpandableCard`** — Collapsible card with optional icon, header menu, and local storage state persistence.
+- **`ExpandableCard`** — Collapsible card with an optional leading icon or image, header menu, and local storage state persistence.
 - **`Loading`** — Indeterminate progress indicator (centered or inline).
 - **`Title`** — Dynamic page title based on route and `BlazorOptions.Title`.
 - **`DateTimeView`** — Formatted date/time display with relative duration tooltip.
