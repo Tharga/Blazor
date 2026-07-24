@@ -3,7 +3,14 @@
 <RadzenCard>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="margin: calc(-1 * var(--rz-card-padding)); padding: 1rem; cursor: pointer; border-bottom: 1px solid #d6d5d5;" @onclick="OnToggleSelection">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-            <RadzenIcon Icon="@Icon" Visible="@(!string.IsNullOrEmpty(Icon))" />
+            @if (!string.IsNullOrEmpty(ImageUrl))
+            {
+                <img src="@ImageUrl" alt="@Text" style="max-height: var(--rz-icon-size); width: auto;" />
+            }
+            else
+            {
+                <RadzenIcon Icon="@Icon" Visible="@(!string.IsNullOrEmpty(Icon))" />
+            }
             <RadzenText Text="@Text" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
@@ -27,6 +34,14 @@
 
     [Parameter]
     public string Icon { get; set; }
+
+    /// <summary>
+    /// URL of an image to render in the leading title slot, in place of <see cref="Icon"/>.
+    /// When set, the image is shown and <see cref="Icon"/> is ignored. The image height is
+    /// capped to the icon size, preserving aspect ratio.
+    /// </summary>
+    [Parameter]
+    public string ImageUrl { get; set; }
 
     [Parameter]
     public bool AllowSaveState { get; set; } = true;
