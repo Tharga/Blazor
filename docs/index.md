@@ -36,7 +36,7 @@ See [Getting started](articles/getting-started.md) for the full setup walkthroug
 - **Buttons** — `ActionButton` wraps async clicks with busy state + error notifications; `StandardButton` is the typed base (`Normal`, `Discrete`, `Information`, `Warning`, `Error`, `Confirm`, `Reject`); `CopyButton` writes to the clipboard; `CancelButton` is a pre-styled cancel. See [Buttons](articles/buttons.md).
 - **Breadcrumbs** — `<BreadCrumbs />` renders a route-aware trail; `BreadCrumbService` adds virtual segments, promotes query parameters, and relinks/unlinks segments. See [Breadcrumbs](articles/breadcrumbs.md).
 - **Error handling** — `CustomErrorBoundary` catches unhandled exceptions, logs them with a correlation ID, and renders a recovery surface.
-- **Layout & display** — `ExpandableCard` (collapsible, with optional local-storage state), `Loading`, `Title`, `DateTimeView`, `TimeSpanView`.
+- **Layout & display** — `ExpandableCard` (collapsible, with an optional leading icon or image and local-storage state; see [ExpandableCard](articles/expandablecard.md)), `Loading`, `Title`, `DateTimeView`, `TimeSpanView`.
 
 ## Repo
 
