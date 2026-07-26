@@ -1,24 +1,33 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
-    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.0</Version>
     <Authors>Daniel Bohlin</Authors>
     <Company>Thargelion AB</Company>
     <Product>Tharga Blazor</Product>
     <Description>Generic reusable Blazor UI components: buttons, breadcrumbs, error boundaries, and more. Built on Radzen.Blazor.</Description>
     <PackageIconUrl>https://thargelion.net/assets/component-blazor.png</PackageIconUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Tharga/Blazor</PackageProjectUrl>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <DebugType>portable</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSource>true</IncludeSource>
     <IncludeSymbols>true</IncludeSymbols>
+    <!-- Without this, pack emits the legacy .symbols.nupkg, which nuget.org
+         rejects as a duplicate of the main package, so no symbols ship. -->
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <PropertyGroup>
-    <NoWarn>1701;1702;CS1591</NoWarn>
+    <!--
+      NU5048: PackageIconUrl is deprecated in favour of an embedded PackageIcon.
+      Suppressed deliberately. Tharga packages reference their icon from
+      https://thargelion.net/assets/ so all package icons are maintained in one
+      place and can be updated without republishing a package.
+    -->
+    <NoWarn>1701;1702;CS1591;NU5048</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -28,8 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.10" />
     <PackageReference Include="Radzen.Blazor" Version="10.4.7" />
-    <PackageReference Include="Tharga.Toolkit" Version="1.15.25" />
+    <PackageReference Include="Tharga.Toolkit" Version="1.16.0" />
   </ItemGroup>
 </Project>
