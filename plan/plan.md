@@ -28,11 +28,15 @@
 - [x] 6. Run the full suite in Release
       Done: 39 passed, 0 failed.
 
-- [ ] 7. Docs (`docs:` commit)
-      `docs/articles/expandablecard.md`: a state-persistence section, `AllowSaveState` and `StateKey` in
-      the parameters table (both missing today). `README.md:100`: make the one-line claim accurate.
+- [x] 7. Docs (`docs:` commit)
+      Done in `a4110ce`: `docs/articles/expandablecard.md` gained a "Remembering the state" section
+      covering `AllowSaveState`, why `StateKey` is preferred over the `Text` fallback, the interactive-
+      renderer requirement and the storage-failure behaviour; both new parameters added to the table.
+      `README.md:100` now names the two parameters, so the persistence claim it always made is finally
+      accurate. `docs/api/` is gitignored and regenerates from the XML comments, so nothing to do there.
 
-- [ ] 8. Commit, push the branch, ask the user to test. Do not open the PR yet.
+- [~] 8. Push the branch, ask the user to test. Do not open the PR yet.
+      Awaiting explicit approval to push (branching rules: never push without it).
 
 - [ ] 9. On user confirmation: re-check `dotnet outdated`, close #15 and #16 with evidence, archive
       `plan/feature.md` to the Plan directory, `git rm -r plan`, final `fix:` commit, open the PR.
@@ -70,5 +74,6 @@
 
 ## Last session
 
-2026-08-14 — Branch `fix/expandablecard-state-persistence` created off `master`. Steps 1-6 done: the
-fix is implemented and the suite is green at 39 tests. Next: step 7, the docs commit.
+2026-08-14 — Branch `fix/expandablecard-state-persistence` created off `master`. Steps 1-7 done in
+`1e9d4e1` (fix + tests) and `a4110ce` (docs); the suite is green at 39 tests. Next: push the branch on
+the user's approval, then wait for their test before closing out.
