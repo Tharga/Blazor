@@ -54,9 +54,10 @@
   renders above host-supplied content, which makes the documented `ErrorBoundary` extension point
   useless for the exact case the issue is about. Fixed here rather than filed separately.
 
-- **Version.** Next CI version is 2.3.2 and no public API breaks. The stack-trace default flip is
-  visible behaviour though — decide at close-out whether it rides a patch with release notes or
-  warrants raising `MAJOR_MINOR` to 2.4.
+- **Version: 2.3.2, no bump** (decided by the user 2026-08-15). `MAJOR_MINOR` stays `2.3`. The
+  stack-trace default flip is announced in the release notes and in the #14 close-out comment rather
+  than in the version number — a developer who loses their local stack traces needs to be told where
+  the switch is, and a minor bump would not have told them that either.
 
 ## Last session
 

@@ -70,9 +70,11 @@ So the host decides, which it always can:
 `ShowExceptionDetails` once, in code or in `appsettings.Development.json`. That is the intended
 direction: the current default leaks them to end users in production.
 
-The next CI version is **2.3.2** (latest tag `2.3.1`). Nothing in the public API breaks — the new
-option is additive — so a patch fits, but the default flip is behaviour a reader may want announced;
-say so in the release notes, or raise `MAJOR_MINOR` to `2.4` if it deserves a minor.
+**Ships as 2.3.2** — decided 2026-08-15, `MAJOR_MINOR` stays at `2.3`. Nothing in the public API
+breaks (the new option is additive) and the behaviour change is a security fix rather than a
+capability change, so it rides the patch. The default flip still gets said out loud in the release
+notes and in the issue close-out, since a developer who loses their local stack traces will otherwise
+read it as a regression.
 
 ## Acceptance criteria
 
