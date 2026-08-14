@@ -34,11 +34,14 @@ With the configuration overload, settings come from the `Tharga:Blazor` section 
 {
   "Tharga": {
     "Blazor": {
-      "Title": "Application Name"
+      "Title": "Application Name",
+      "ShowExceptionDetails": false
     }
   }
 }
 ```
+
+`ShowExceptionDetails` lets `CustomErrorBoundary` render exception messages and stack traces. It is off unless set — turn it on in `appsettings.Development.json` only, or from code with `o.ShowExceptionDetails = builder.Environment.IsDevelopment()`. See [Error boundary](errorboundary.md).
 
 `AddThargaBlazor` registers:
 
@@ -79,3 +82,4 @@ Drop a copy button next to an inline value:
 
 - [Buttons](buttons.md) — `ActionButton`, `StandardButton`, `CopyButton`, `CancelButton`.
 - [Breadcrumbs](breadcrumbs.md) — virtual segments, query-param promotion, relinking.
+- [Error boundary](errorboundary.md) — correlation-id logging, access-denied handling, stack-trace opt-in.

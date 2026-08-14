@@ -95,6 +95,14 @@ BreadCrumbService.UnlinkSegment("Current");
 
 Catches unhandled exceptions, logs them with a correlation ID, and displays an error view with recovery.
 
+An `UnauthorizedAccessException` is treated as an expected outcome rather than a crash: it renders a compact **Access denied** panel carrying the exception message, and logs at `Warning`. Everything else renders the crash panel and logs at `Error`.
+
+Exception messages and stack traces are shown **only** when the host opts in, so they never reach a production user:
+
+```csharp
+builder.Services.AddThargaBlazor(o => o.ShowExceptionDetails = builder.Environment.IsDevelopment());
+```
+
 ### Layout & Display
 
 - **`ExpandableCard`** — Collapsible card with an optional leading icon or image, header menu, and local storage state persistence (`AllowSaveState`, keyed by `StateKey`).

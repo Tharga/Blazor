@@ -8,3 +8,5 @@
   href: breadcrumbs.md
 - name: ExpandableCard
   href: expandablecard.md
+- name: Error boundary
+  href: errorboundary.md
