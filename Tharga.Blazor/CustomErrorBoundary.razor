@@ -1,39 +1,44 @@
 ﻿@using System.Collections
 @using Microsoft.Extensions.Logging
+@using Microsoft.Extensions.Options
 @using Tharga.Toolkit.Logging
-@* @using Quilt4Net.Toolkit.Features.Measure *@
 @inherits ErrorBoundary
 @inject ILogger<CustomErrorBoundary> Logger
-@* @inject IWebHostEnvironment Environment *@
+@inject IOptions<BlazorOptions> Options
 
 @if (CurrentException is null)
 {
     @ChildContent
+}
+else if (ErrorContent is not null)
+{
+    @ErrorContent(CurrentException)
+}
+else if (IsAccessDenied)
+{
+    <div class="access-denied-content">
+        <h3>Access denied</h3>
+        <p>@CurrentException.Message</p>
+        <button class="btn btn-primary" @onclick="Recover">Try again</button>
+    </div>
 }
 else
 {
     <div class="error-content">
         <h3>Something went wrong!</h3>
 
-        @if (ErrorContent is not null)
+        @if (ShowExceptionDetails)
         {
-            @ErrorContent(CurrentException)
+            <div class="dev-error-details">
+                <strong>Exception Message:</strong> @CurrentException.Message
+                <br />
+                <strong>Stack Trace:</strong>
+                <pre>@CurrentException.StackTrace</pre>
+            </div>
         }
         else
         {
-@*             @if (Environment.IsDevelopment())
-            { *@
-                <div class="dev-error-details">
-                    <strong>Exception Message:</strong> @CurrentException.Message
-                    <br />
-                    <strong>Stack Trace:</strong>
-                    <pre>@CurrentException.StackTrace</pre>
-                </div>
-@*             }
-            else
-            {
-                <p>We encountered an unexpected error.</p>
-            } *@
+            <p>We encountered an unexpected error.</p>
         }
         <p>This error has been logged with CorrelationId <i>@_correlationId</i>. <CopyButton Content="@($"{_correlationId}")" /></p>
         <button class="btn btn-primary" @onclick="Recover">Try to recover</button>
@@ -43,6 +48,10 @@ else
 @code {
     private Guid _correlationId;
 
+    private bool IsAccessDenied => CurrentException is UnauthorizedAccessException;
+
+    private bool ShowExceptionDetails => Options.Value.ShowExceptionDetails == true;
+
     protected override Task OnErrorAsync(Exception e)
     {
         _correlationId = Guid.NewGuid();
@@ -50,7 +59,14 @@ else
 
         using (Logger.BeginScope(e.ToDictionary()))
         {
-            Logger.LogError(e, e.Message);
+            if (e is UnauthorizedAccessException)
+            {
+                Logger.LogWarning(e, e.Message);
+            }
+            else
+            {
+                Logger.LogError(e, e.Message);
+            }
         }
 
         return Task.CompletedTask;

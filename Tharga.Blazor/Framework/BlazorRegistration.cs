@@ -23,6 +23,7 @@ public static class BlazorRegistration
         services.Configure<BlazorOptions>(bo =>
         {
             if (options.Title != null) bo.Title = options.Title;
+            if (options.ShowExceptionDetails != null) bo.ShowExceptionDetails = options.ShowExceptionDetails;
         });
     }
 }
