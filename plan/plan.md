@@ -28,12 +28,14 @@
 - [x] 6. Run the full suite in Release
       Done: 56 passed, 0 failed (39 existing + 17 new).
 
-- [~] 7. Docs (`docs:` commit)
-      New `docs/articles/errorboundary.md` + `docs/articles/toc.yml` entry — the component has no
-      article today. Update the README's *Error Handling* section, which currently shows only the
-      wrapper markup and does not mention that stack traces are involved at all.
+- [x] 7. Docs (`docs:` commit)
+      Done in `c841e3b`: new `docs/articles/errorboundary.md` covering the three render paths, the
+      `ShowExceptionDetails` opt-in and why the host has to make that call, the log-level split and the
+      three CSS hooks; linked from `toc.yml`, `articles/index.md` and *Getting started*, whose
+      `appsettings` sample now carries the new key. README's *Error Handling* section states the
+      access-denied behaviour and the opt-in.
 
-- [ ] 8. Commit, push the branch, ask the user to test. Do not open the PR yet.
+- [~] 8. Push the branch, ask the user to test. Do not open the PR yet.
 
 - [ ] 9. On user confirmation: re-check `dotnet outdated`, close #14 with evidence, archive
       `plan/feature.md` to the Plan directory, `git rm -r plan`, final `fix:` commit, open the PR.
