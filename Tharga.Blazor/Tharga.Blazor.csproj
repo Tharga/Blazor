@@ -37,8 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.10" />
-    <PackageReference Include="Radzen.Blazor" Version="10.4.7" />
-    <PackageReference Include="Tharga.Toolkit" Version="1.16.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.11" />
+    <PackageReference Include="Radzen.Blazor" Version="11.2.5" />
+    <PackageReference Include="Tharga.Toolkit" Version="1.16.1" />
   </ItemGroup>
 </Project>
