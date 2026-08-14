@@ -1,4 +1,5 @@
-﻿@inject ILocalStorageService LocalStorageService
+﻿@using Microsoft.JSInterop
+@inject ILocalStorageService LocalStorageService
 
 <RadzenCard>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="margin: calc(-1 * var(--rz-card-padding)); padding: 1rem; cursor: pointer; border-bottom: 1px solid #d6d5d5;" @onclick="OnToggleSelection">
@@ -27,7 +28,12 @@
 </RadzenCard>
 
 @code {
+    private const string StorageKeyPrefix = "ExpandableCard.";
+    private const string StorageKeySuffix = ".Selected";
+
     private bool? _selected;
+    private string _storageKey;
+    private bool _stateLoaded;
 
     [Parameter]
     public string Text { get; set; }
@@ -43,6 +49,25 @@
     [Parameter]
     public string ImageUrl { get; set; }
 
+    /// <summary>
+    /// Stable key the expanded state is stored under when <see cref="AllowSaveState"/> is set.
+    /// Defaults to <see cref="Text"/>, which is display text and therefore translated, not unique
+    /// across pages, and possibly assigned only after the first render. Set this to a key of your own
+    /// wherever any of that applies.
+    /// </summary>
+    /// <remarks>
+    /// The resolved key is stored as <c>ExpandableCard.{key}.Selected</c> and is captured the first
+    /// time it is needed, so a <see cref="Text"/> that arrives late cannot separate the key read from
+    /// the key written.
+    /// </remarks>
+    [Parameter]
+    public string StateKey { get; set; }
+
+    /// <summary>
+    /// Whether the expanded state is persisted to local storage and restored on the next render.
+    /// Default <c>true</c>. Requires an interactive renderer; under prerendering or static server
+    /// rendering the card renders at <see cref="Selected"/> and storage is left untouched.
+    /// </summary>
     [Parameter]
     public bool AllowSaveState { get; set; } = true;
 
@@ -56,29 +81,70 @@
     public RenderFragment TopMenu { get; set; }
 
     private bool IsSelected => _selected ?? Selected;
-    // private string StorageName => $"ExpandableCard.{Text.ToBase64String()}.Selected";
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    public override async Task SetParametersAsync(ParameterView parameters)
     {
-        if (firstRender && AllowSaveState)
+        parameters.SetParameterProperties(this);
+
+        if (!_stateLoaded)
         {
-            // _selected = await LocalStorageService.GetItemAsync<bool?>(StorageName);
-            if (_selected != Selected)
+            _stateLoaded = true;
+            if (RendererInfo.IsInteractive)
             {
-                StateHasChanged();
+                _selected = await ReadStoredStateAsync();
             }
         }
 
-        await base.OnAfterRenderAsync(firstRender);
+        await base.SetParametersAsync(ParameterView.Empty);
     }
 
     private async Task OnToggleSelection()
     {
-        _selected = !(_selected ?? Selected);
+        _selected = !IsSelected;
 
-        if (AllowSaveState)
+        await WriteStoredStateAsync(_selected.Value);
+    }
+
+    private async Task<bool?> ReadStoredStateAsync()
+    {
+        var storageKey = ResolveStorageKey();
+        if (storageKey == null) return null;
+
+        try
         {
-            // await LocalStorageService.SetItemAsync(StorageName, _selected);
+            return await LocalStorageService.GetItemAsync<bool?>(storageKey);
+        }
+        catch (Exception exception) when (IsStorageUnavailable(exception))
+        {
+            return null;
         }
     }
+
+    private async Task WriteStoredStateAsync(bool selected)
+    {
+        var storageKey = ResolveStorageKey();
+        if (storageKey == null) return;
+
+        try
+        {
+            await LocalStorageService.SetItemAsync(storageKey, selected);
+        }
+        catch (Exception exception) when (IsStorageUnavailable(exception))
+        {
+        }
+    }
+
+    private string ResolveStorageKey()
+    {
+        if (!AllowSaveState) return null;
+        if (_storageKey != null) return _storageKey;
+
+        var name = string.IsNullOrWhiteSpace(StateKey) ? Text : StateKey;
+
+        return string.IsNullOrWhiteSpace(name)
+            ? null
+            : _storageKey = $"{StorageKeyPrefix}{name}{StorageKeySuffix}";
+    }
+
+    private static bool IsStorageUnavailable(Exception exception) => exception is JSException or InvalidOperationException;
 }
