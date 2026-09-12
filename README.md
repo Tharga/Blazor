@@ -49,6 +49,7 @@ This registers:
 - `BreadCrumbService` (scoped)
 - `ILocalStorageService` from Blazored.LocalStorage
 - `IOptions<BlazorOptions>` for configuration
+- `IBlazorLanguageProvider` and `LanguageResolver` (scoped), both with `TryAdd`
 
 ## Components
 
