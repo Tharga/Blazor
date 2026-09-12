@@ -22,6 +22,7 @@ builder.Services.AddThargaBlazor(o => o.Title = "My Application");
 - **Buttons** — `ActionButton`, `CancelButton`, `CopyButton`, `StandardButton` with built-in busy states, error handling, and typed styling.
 - **Breadcrumbs** — Route-aware breadcrumb trail with virtual segments, query parameter segments, and programmatic control.
 - **Error Handling** — `CustomErrorBoundary` with correlation ID logging and recovery.
-- **Layout** — `ExpandableCard`, `Loading`, `Title`, `DateTimeView`, `TimeSpanView`.
+- **Layout** — `ExpandableCard`, `Loading`, `Title`.
+- **Dates and durations** — `DateTimeView`, `TimeSpanView`, in English or Swedish, absolute or relative, with an opt-in refresh for relative labels.
 
 For full documentation and usage examples, see the [GitHub README](https://github.com/Tharga/Toolkit-Blazor).

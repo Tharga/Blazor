@@ -14,7 +14,7 @@ public record BlazorOptions
     public string Title { get; set; }
 
     /// <summary>
-    /// The language <see cref="DateTimeView"/> and <see cref="TimeSpanView"/> render in. Unset
+    /// The language <c>DateTimeView</c> and <c>TimeSpanView</c> render in. Unset
     /// falls through to <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>, and then
     /// to English when that is a culture the Toolkit has no wording for.
     /// </summary>
