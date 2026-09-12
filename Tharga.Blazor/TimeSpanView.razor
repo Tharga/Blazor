@@ -1,6 +1,32 @@
-﻿<span title="@TimeSpan">@Toolkit.DateTimeExtensions.ToTimeSpanString(TimeSpan)</span>
+@using Microsoft.Extensions.DependencyInjection
+@using Tharga.Blazor.Framework.Localization
+@using Tharga.Toolkit
+@inject IServiceProvider ServiceProvider
+
+<span title="@TimeSpan">@Text</span>
 
 @code {
+    private static readonly LanguageResolver UnregisteredResolver = new(null, null);
+
+    /// <summary>
+    /// The duration to describe. Renders as an empty span when null.
+    /// </summary>
     [Parameter]
     public TimeSpan? TimeSpan { get; set; }
+
+    /// <summary>
+    /// The language to render in. Unset resolves through the host's
+    /// <see cref="IBlazorLanguageProvider"/>, then <see cref="BlazorOptions.Language"/>, then the
+    /// current UI culture, then English.
+    /// </summary>
+    [Parameter]
+    public Language? Language { get; set; }
+
+    private string Text => TimeSpan.ToTimeSpanString(TimeSpanStringOptionsExtensions.Get(ResolveLanguage().ToString()));
+
+    private Language ResolveLanguage()
+    {
+        var resolver = ServiceProvider?.GetService<LanguageResolver>() ?? UnregisteredResolver;
+        return resolver.Resolve(Language);
+    }
 }

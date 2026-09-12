@@ -1,7 +1,9 @@
 using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Tharga.Blazor.Features.BreadCrumbs;
+using Tharga.Blazor.Framework.Localization;
 
 namespace Tharga.Blazor.Framework;
 
@@ -11,6 +13,8 @@ public static class BlazorRegistration
     {
         services.AddScoped<BreadCrumbService>();
         services.AddBlazoredLocalStorage();
+        services.TryAddScoped<IBlazorLanguageProvider, DefaultBlazorLanguageProvider>();
+        services.TryAddScoped<LanguageResolver>();
 
         if (configuration != null)
         {
@@ -24,6 +28,7 @@ public static class BlazorRegistration
         {
             if (options.Title != null) bo.Title = options.Title;
             if (options.ShowExceptionDetails != null) bo.ShowExceptionDetails = options.ShowExceptionDetails;
+            if (options.Language != null) bo.Language = options.Language;
         });
     }
 }
