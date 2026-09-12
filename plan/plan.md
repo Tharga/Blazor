@@ -56,7 +56,8 @@ additive, so `MAJOR_MINOR` stays `2.3`.
   (`EDateTimeDisplay`, `IBlazorLanguageProvider`, `LanguageResolver`), and dropped the DocFX cref
   warnings from 6 to the 2 that pre-date this feature.
 
-- [~] **6. Close the records** — comment and close GitHub #24 (external consumer, so no
+- [ ] **6. Close the records** *(close-out — waits for the user to confirm the feature is done)*
+  — comment and close GitHub #24 (external consumer, so no
   follow-up entry); mark the `Requests.md` item Done **and** add a `## Follow-up` entry for
   Tharga.Team (a Tharga project); add the `IDisposable` leak note to the backlog.
 
@@ -83,4 +84,6 @@ additive, so `MAJOR_MINOR` stays `2.3`.
 both against the code, and settled the three open design decisions. Steps 0-4 complete: NuGet
 updated (own commit), the resolution chain built, both components wired, display mode and opt-in
 refresh added, 46 tests written, and docs landed on both surfaces. **102/102 green, 0 warnings.**
-Next: step 6, closing the records.
+**Implementation is complete and the branch is not yet pushed.** Steps 6-7 are the close-out and
+wait for the user to test and confirm. Nothing is marked Done in `Requests.md` and GitHub #24 is
+still open, deliberately — a record is only closed once the user says the feature is done.
