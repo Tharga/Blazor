@@ -1,3 +1,6 @@
+using Tharga.Blazor.Framework.Localization;
+using Tharga.Toolkit;
+
 namespace Tharga.Blazor.Framework;
 
 /// <summary>
@@ -9,6 +12,24 @@ public record BlazorOptions
     /// Application title shown in breadcrumbs and page titles.
     /// </summary>
     public string Title { get; set; }
+
+    /// <summary>
+    /// The language <c>DateTimeView</c> and <c>TimeSpanView</c> render in. Unset
+    /// falls through to <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>, and then
+    /// to English when that is a culture the Toolkit has no wording for.
+    /// </summary>
+    /// <remarks>
+    /// This is the application-wide default, so it suits an app that speaks one language. It
+    /// cannot vary per user or per tenant: options are resolved as a singleton, so every circuit
+    /// reads the same value. A host that chooses language per tenant should register an
+    /// <see cref="IBlazorLanguageProvider"/> instead, which is scoped and takes precedence over
+    /// this.
+    /// <para>
+    /// Settable in code, <c>o.Language = Language.Sv</c>, or per environment under the
+    /// <c>Tharga:Blazor</c> configuration section.
+    /// </para>
+    /// </remarks>
+    public Language? Language { get; set; }
 
     /// <summary>
     /// Whether <see cref="CustomErrorBoundary"/> may render exception details — the message and the

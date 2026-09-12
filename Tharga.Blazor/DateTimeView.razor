@@ -1,6 +1,146 @@
-﻿<span title="@Toolkit.DateTimeExtensions.ToLocalDateTimeString(Date)">@Toolkit.DateTimeExtensions.ToLocalDurationString(Date)</span>
+@using Microsoft.Extensions.DependencyInjection
+@using Tharga.Blazor.Framework.Localization
+@using Tharga.Toolkit
+@implements IAsyncDisposable
+@inject IServiceProvider ServiceProvider
+
+<span title="@Tooltip">@Text</span>
 
 @code {
+    private static readonly TimeSpan MinimumRefreshInterval = TimeSpan.FromSeconds(1);
+    private static readonly LanguageResolver UnregisteredResolver = new(null, null);
+
+    private TimeSpan? _activeInterval;
+    private PeriodicTimer _timer;
+    private CancellationTokenSource _cancellation;
+    private Task _refreshLoop;
+    private bool _interactive;
+
+    /// <summary>
+    /// The moment to describe. Renders as an empty span when null.
+    /// </summary>
     [Parameter]
     public DateTime? Date { get; set; }
+
+    /// <summary>
+    /// The language to render in. Unset resolves through the host's
+    /// <see cref="IBlazorLanguageProvider"/>, then <see cref="BlazorOptions.Language"/>, then the
+    /// current UI culture, then English.
+    /// </summary>
+    [Parameter]
+    public Language? Language { get; set; }
+
+    /// <summary>
+    /// Which form to show as the text. Defaults to <see cref="EDateTimeDisplay.Relative"/>.
+    /// </summary>
+    [Parameter]
+    public EDateTimeDisplay Display { get; set; }
+
+    /// <summary>
+    /// How often to recompute a relative label so it stops describing a moment that has passed.
+    /// Unset — the default — never recomputes.
+    /// </summary>
+    /// <remarks>
+    /// Intervals below one second are raised to one second: this component shows no finer
+    /// granularity, and a grid multiplies the cost by its row count. Ignored when
+    /// <see cref="Display"/> is <see cref="EDateTimeDisplay.Absolute"/>, which cannot go stale.
+    /// </remarks>
+    [Parameter]
+    public TimeSpan? RefreshInterval { get; set; }
+
+    private string Text => Display == EDateTimeDisplay.Absolute ? Absolute : Relative;
+
+    private string Tooltip => Display == EDateTimeDisplay.Absolute ? Relative : Absolute;
+
+    private string Absolute => Date.ToLocalDateTimeString();
+
+    private string Relative => Date.ToLocalDurationString(new DurationOptions
+    {
+        StringOptions = DurationStringOptionsExtensions.Get(ResolveLanguage())
+    });
+
+    private Language ResolveLanguage()
+    {
+        var resolver = ServiceProvider?.GetService<LanguageResolver>() ?? UnregisteredResolver;
+        return resolver.Resolve(Language);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        _interactive = true;
+        await SyncTimerAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_interactive) await SyncTimerAsync();
+    }
+
+    private TimeSpan? EffectiveInterval()
+    {
+        if (RefreshInterval == null || Display == EDateTimeDisplay.Absolute) return null;
+        return RefreshInterval.Value < MinimumRefreshInterval ? MinimumRefreshInterval : RefreshInterval.Value;
+    }
+
+    private async Task SyncTimerAsync()
+    {
+        var interval = EffectiveInterval();
+        if (interval == _activeInterval) return;
+
+        await StopAsync();
+        _activeInterval = interval;
+        if (interval != null) Start(interval.Value);
+    }
+
+    private void Start(TimeSpan interval)
+    {
+        _cancellation = new CancellationTokenSource();
+        _timer = new PeriodicTimer(interval);
+        _refreshLoop = RefreshAsync(_timer, _cancellation.Token);
+    }
+
+    private async Task RefreshAsync(PeriodicTimer timer, CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task StopAsync()
+    {
+        if (_cancellation == null) return;
+
+        await _cancellation.CancelAsync();
+        _timer?.Dispose();
+
+        if (_refreshLoop != null)
+        {
+            try
+            {
+                await _refreshLoop;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        _cancellation.Dispose();
+        _cancellation = null;
+        _timer = null;
+        _refreshLoop = null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopAsync();
+    }
 }

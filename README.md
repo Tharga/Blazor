@@ -49,6 +49,7 @@ This registers:
 - `BreadCrumbService` (scoped)
 - `ILocalStorageService` from Blazored.LocalStorage
 - `IOptions<BlazorOptions>` for configuration
+- `IBlazorLanguageProvider` and `LanguageResolver` (scoped), both with `TryAdd`
 
 ## Components
 
@@ -108,8 +109,24 @@ builder.Services.AddThargaBlazor(o => o.ShowExceptionDetails = builder.Environme
 - **`ExpandableCard`** — Collapsible card with an optional leading icon or image, header menu, and local storage state persistence (`AllowSaveState`, keyed by `StateKey`).
 - **`Loading`** — Indeterminate progress indicator (centered or inline).
 - **`Title`** — Dynamic page title based on route and `BlazorOptions.Title`.
-- **`DateTimeView`** — Formatted date/time display with relative duration tooltip.
-- **`TimeSpanView`** — Formatted time span display.
+- **`DateTimeView`** — Date/time display, relative or absolute, with the other form as the tooltip. Renders in English or Swedish, and can recompute a relative label on an interval.
+- **`TimeSpanView`** — Formatted time span display, in English or Swedish.
+
+### Language
+
+`DateTimeView` and `TimeSpanView` resolve their language from, in order: the `Language` parameter, an `IBlazorLanguageProvider` the host registered, `BlazorOptions.Language`, and `CultureInfo.CurrentUICulture` — falling back to English for a culture the Toolkit has no wording for.
+
+```csharp
+builder.Services.AddThargaBlazor(o => o.Language = Language.Sv);
+```
+
+Options are a singleton, so a multi-tenant site resolves language per circuit instead:
+
+```csharp
+builder.Services.AddScoped<IBlazorLanguageProvider, TenantLanguageProvider>();
+```
+
+A relative label describes a moving quantity but only recomputes when the component renders, so in a static grid it goes stale. `Display="EDateTimeDisplay.Absolute"` avoids the problem entirely, and `RefreshInterval` opts into recomputing it. See [Date and duration views](https://blazor.tharga.net/articles/datetimeview.html).
 
 ## Target Frameworks
 

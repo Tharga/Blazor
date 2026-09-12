@@ -35,7 +35,8 @@ With the configuration overload, settings come from the `Tharga:Blazor` section 
   "Tharga": {
     "Blazor": {
       "Title": "Application Name",
-      "ShowExceptionDetails": false
+      "ShowExceptionDetails": false,
+      "Language": "En"
     }
   }
 }
@@ -43,11 +44,14 @@ With the configuration overload, settings come from the `Tharga:Blazor` section 
 
 `ShowExceptionDetails` lets `CustomErrorBoundary` render exception messages and stack traces. It is off unless set — turn it on in `appsettings.Development.json` only, or from code with `o.ShowExceptionDetails = builder.Environment.IsDevelopment()`. See [Error boundary](errorboundary.md).
 
+`Language` sets the application-wide language for `DateTimeView` and `TimeSpanView` — `En` or `Sv`. Unset, they follow `CultureInfo.CurrentUICulture` and fall back to English. A site serving several tenants resolves it per circuit instead; see [Date and duration views](datetimeview.md).
+
 `AddThargaBlazor` registers:
 
 - `BreadCrumbService` (scoped)
 - `ILocalStorageService` from [Blazored.LocalStorage](https://github.com/Blazored/LocalStorage)
 - `IOptions<BlazorOptions>` for configuration
+- `IBlazorLanguageProvider` and `LanguageResolver` (scoped) — both with `TryAdd`, so registering your own provider replaces the built-in one
 
 ## Add the Radzen prerequisites
 
