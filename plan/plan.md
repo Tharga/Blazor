@@ -14,4 +14,4 @@
 - Branch `feature/datetimeview-date-display` from `master` (GitHub Actions → PR to master).
 
 ## Last session
-2026-09-27 — branch created, plan written. Next: step 2.
+2026-09-27 — steps 1–5 done: `EDateTimeDisplay.Date`, tooltip carries what the text omits, leftover test packages dropped, docs. 122 → 126 tests. Next: user confirms, then close-out (records, archive, PR).
