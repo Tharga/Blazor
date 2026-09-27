@@ -118,7 +118,7 @@ builder.Services.AddThargaBlazor(o => o.ShowExceptionDetails = builder.Environme
 - **`ExpandableCard`** — Collapsible card with an optional leading icon or image, header menu, and local storage state persistence (`AllowSaveState`, keyed by `StateKey`).
 - **`Loading`** — Indeterminate progress indicator (centered or inline).
 - **`Title`** — Dynamic page title based on route and `BlazorOptions.Title`.
-- **`DateTimeView`** — Date/time display, relative or absolute, with the other form as the tooltip. Renders in English or Swedish, and can recompute a relative label on an interval.
+- **`DateTimeView`** — Date/time display: relative, absolute, or the day alone, with whatever the text leaves out as the tooltip. Renders in English or Swedish, and can recompute a relative label on an interval.
 - **`TimeSpanView`** — Formatted time span display, in English or Swedish.
 
 ### Language
@@ -135,7 +135,7 @@ Options are a singleton, so a multi-tenant site resolves language per circuit in
 builder.Services.AddScoped<IBlazorLanguageProvider, TenantLanguageProvider>();
 ```
 
-A relative label describes a moving quantity but only recomputes when the component renders, so in a static grid it goes stale. `Display="EDateTimeDisplay.Absolute"` avoids the problem entirely, and `RefreshInterval` opts into recomputing it. See [Date and duration views](https://blazor.tharga.net/articles/datetimeview.html).
+A relative label describes a moving quantity but only recomputes when the component renders, so in a static grid it goes stale. `Display="EDateTimeDisplay.Absolute"` (or `Date`, for narrow columns) avoids the problem entirely, and `RefreshInterval` opts into recomputing it. See [Date and duration views](https://blazor.tharga.net/articles/datetimeview.html).
 
 ## Target Frameworks
 

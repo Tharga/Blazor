@@ -7,8 +7,8 @@
       (was "not Absolute"). Enum and `RefreshInterval` docs updated. 126/126.
 - [x] 4. Dropped both packages. `Microsoft.NET.Test.Sdk` had been supplying `OutputType=Exe`, which xunit v3
       requires, so it is now declared in the csproj. 126/126, and the CI coverage command still produces cobertura.
-- [~] 5. Docs: README + `docs/articles/datetimeview.md`
-- [ ] 6. Close-out
+- [x] 5. Docs: `datetimeview.md` section renamed "Relative, absolute or date", table row, rule, refresh note, parameter table; README component line and staleness note.
+- [~] 6. Close-out
 
 ## Notes
 - Branch `feature/datetimeview-date-display` from `master` (GitHub Actions → PR to master).

@@ -71,9 +71,9 @@ Returning `null` means "no opinion" and falls through to the application default
 
 **Why a service rather than a cascading value.** A service is resolved wherever the component renders. A cascading value only reaches the render tree it wraps, so a component inside a dialog opened through `DialogService` would silently fall back while the page behind it rendered correctly.
 
-## Absolute or relative
+## Relative, absolute or date
 
-`Display` decides which form is the text; the other becomes the tooltip.
+`Display` decides which form is the text; whatever the text leaves out becomes the tooltip.
 
 ```razor
 <DateTimeView Date="@entry.Timestamp" Display="EDateTimeDisplay.Absolute" />
@@ -83,6 +83,9 @@ Returning `null` means "no opinion" and falls through to the application default
 |---|---|---|
 | `Relative` (default) | `34 seconds ago` | `2026-09-12 07:54:35` |
 | `Absolute` | `2026-09-12 07:54:35` | `34 seconds ago` |
+| `Date` | `2026-09-12` | `2026-09-12 07:54:35 · 34 seconds ago` |
+
+**`Date` is for narrow columns.** The day is what a reader scans down a list, and the full timestamp is wider than most grid columns have room for. Hovering still gives both the exact time and the elapsed time.
 
 **Prefer `Absolute` wherever exact ordering matters.** A relative label is rounded, so two entries written a few hundred milliseconds apart can render as five seconds apart, and a column of them can read as a sequence of events that never happened. For an audit log, a job history, or anything sorted by time, the timestamp is the honest form.
 
@@ -102,7 +105,7 @@ Points worth knowing before switching it on:
 
 - **It costs one timer per component instance.** A grid of 50 rows with two date columns is 100 timers, each waking the circuit. Pick an interval matching the granularity you actually show; 30 seconds is plenty for a column measured in minutes.
 - **Intervals below one second are raised to one second.** The component shows no finer granularity.
-- **It is ignored when `Display` is `Absolute`**, which cannot go stale.
+- **It is ignored unless `Display` is `Relative`.** `Absolute` and `Date` cannot go stale, and their tooltips are recomputed on every render.
 - **No timer starts during prerendering or static server rendering**, only once the component is interactive.
 
 Where a grid already refreshes on a schedule of its own, leave `RefreshInterval` unset and let the grid's own render cycle do the work.
@@ -115,7 +118,7 @@ Where a grid already refreshes on a schedule of its own, leave `RefreshInterval`
 |---|---|---|
 | `Date` | `DateTime?` | The moment to describe. Null renders an empty span. |
 | `Language` | `Language?` | Overrides the resolved language. Default unset. |
-| `Display` | `EDateTimeDisplay` | `Relative` or `Absolute`. Default `Relative`. |
+| `Display` | `EDateTimeDisplay` | `Relative`, `Absolute` or `Date`. Default `Relative`. |
 | `RefreshInterval` | `TimeSpan?` | How often to recompute a relative label. Default unset — never recomputes. Minimum one second. |
 
 ### TimeSpanView
