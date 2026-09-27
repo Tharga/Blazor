@@ -1,8 +1,10 @@
 ﻿@using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.Extensions.Options
 @rendermode CustomRenderModes.StandardMode
 @inject NavigationManager NavigationManager
 @inject IOptions<BlazorOptions> Options
+@implements IDisposable
 
 @if (ChildContent != null)
 {
@@ -19,15 +21,25 @@ else
     private string MainTitle { get; set; } = "Untitled";
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; } = null;
+    public RenderFragment ChildContent { get; set; }
 
     protected override Task OnInitializedAsync()
     {
         MainTitle = Options?.Value.Title;
-        NavigationManager.LocationChanged += (_, _) => { BuildAutoTitle(); };
+        NavigationManager.LocationChanged += OnLocationChanged;
         BuildAutoTitle();
 
         return base.OnInitializedAsync();
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        BuildAutoTitle();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 
     private void BuildAutoTitle()

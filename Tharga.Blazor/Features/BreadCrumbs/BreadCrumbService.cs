@@ -1,21 +1,27 @@
 using Microsoft.AspNetCore.Components;
-using Tharga.Toolkit;
 
 namespace Tharga.Blazor.Features.BreadCrumbs;
 
 public class BreadCrumbService
 {
-    private BreadCrumb[] _segments = [];
-    private BreadCrumb[] _virtualSegments = [];
-    private BreadCrumb[] _autoVirtualSegments = [];
-    private readonly Dictionary<string, List<Modifier>> _modifiers = new ();
+    private Crumb[] _segments = [];
+    private Crumb[] _virtualSegments = [];
+    private Crumb[] _autoVirtualSegments = [];
+    private readonly Dictionary<string, Dictionary<string, Modifier>> _modifiers = new ();
     private readonly HashSet<string> _virtualSegmentQueryParams = [];
     private string _lastNormalizedUri;
     private readonly NavigationManager _navigationManager;
+    private readonly IBreadCrumbTextProvider _textProvider;
 
     public BreadCrumbService(NavigationManager navigationManager)
+        : this(navigationManager, null)
+    {
+    }
+
+    public BreadCrumbService(NavigationManager navigationManager, IBreadCrumbTextProvider textProvider)
     {
         _navigationManager = navigationManager;
+        _textProvider = textProvider;
         navigationManager.LocationChanged += (s, _) => { Build(navigationManager, s); };
 
         Build(navigationManager, this);
@@ -50,25 +56,27 @@ public class BreadCrumbService
                 var pos = text.IndexOf("?", StringComparison.Ordinal);
                 if (pos > 0) text = text.Substring(0, pos);
 
-                return new BreadCrumb { Text = text, Path = path };
+                return new Crumb { Text = text, Path = path, Segment = text, SegmentPath = path };
             })
             .ToArray();
 
-        if (_modifiers.TryGetValue(NormalizeUri(navigationManager.Uri), out var modifiers))
+        if (_modifiers.TryGetValue(normalizedUri, out var modifiers))
         {
             _segments = _segments.Select(x =>
                 {
-                    var item = modifiers.SingleOrDefault(y => x.Text.Equals(y.Text, StringComparison.InvariantCultureIgnoreCase));
-                    switch (item?.Modifyer)
+                    if (!modifiers.TryGetValue(x.Text, out var item)) return x;
+
+                    var crumb = x with { TextOverride = item.Text };
+                    switch (item.Modifyer)
                     {
                         case Modifyer.Remove:
                             return null;
                         case Modifyer.Unlink:
-                            return x with { Path = null };
+                            return crumb with { Path = null };
                         case Modifyer.Relink:
-                            return x with { Path = item.RelinkUrl };
+                            return crumb with { Path = item.RelinkUrl };
                         case null:
-                            return x;
+                            return crumb;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
@@ -82,14 +90,14 @@ public class BreadCrumbService
         ChangeEvent?.Invoke(s, EventArgs.Empty);
     }
 
-    private BreadCrumb[] BuildAutoVirtualSegments(string uri)
+    private Crumb[] BuildAutoVirtualSegments(string uri)
     {
         if (_virtualSegmentQueryParams.Count == 0) return [];
 
         var idx = uri.IndexOf('?');
         if (idx < 0) return [];
 
-        var result = new List<BreadCrumb>();
+        var result = new List<Crumb>();
         foreach (var part in uri.Substring(idx + 1).Split('&'))
         {
             var eq = part.IndexOf('=');
@@ -97,7 +105,7 @@ public class BreadCrumbService
             var key = Uri.UnescapeDataString(part.Substring(0, eq));
             var value = Uri.UnescapeDataString(part.Substring(eq + 1));
             if (_virtualSegmentQueryParams.Contains(key))
-                result.Add(new BreadCrumb { Text = value, Path = null });
+                result.Add(new Crumb { Text = value, Path = null });
         }
         return [.. result];
     }
@@ -115,23 +123,44 @@ public class BreadCrumbService
         get
         {
             var all = _segments.Concat(_autoVirtualSegments).Concat(_virtualSegments).ToArray();
-            return all.Select((path, index) =>
+            return all.Select((crumb, index) =>
             {
-                var text = path.Text.Substring(0, 1).ToUpper() + path.Text.Substring(1);
                 var disabled = index == all.Length - 1;
 
                 return new BreadCrumb
                 {
-                    Text = text,
-                    Path = disabled ? null : path.Path
+                    Text = GetText(crumb),
+                    Path = disabled ? null : crumb.Path
                 };
             });
         }
     }
 
+    private string GetText(Crumb crumb)
+    {
+        if (crumb.TextOverride != null) return crumb.TextOverride;
+
+        if (crumb.Segment != null)
+        {
+            var text = _textProvider?.GetText(crumb.Segment, crumb.SegmentPath);
+            if (text != null) return text;
+        }
+
+        if (string.IsNullOrEmpty(crumb.Text)) return crumb.Text;
+        return crumb.Text.Substring(0, 1).ToUpper() + crumb.Text.Substring(1);
+    }
+
+    /// <summary>
+    /// Raises ChangeEvent so the breadcrumbs re-render, for example after the language changed.
+    /// </summary>
+    public void Refresh()
+    {
+        ChangeEvent?.Invoke(this, EventArgs.Empty);
+    }
+
     public void AddVirtualSegment(string text, string path = null)
     {
-        _virtualSegments = [.. _virtualSegments, new BreadCrumb { Text = text, Path = path }];
+        _virtualSegments = [.. _virtualSegments, new Crumb { Text = text, Path = path }];
         ChangeEvent?.Invoke(this, EventArgs.Empty);
     }
 
@@ -142,68 +171,63 @@ public class BreadCrumbService
         ChangeEvent?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Shows a different text for a path segment on the current URL. The segment keeps its position and link,
+    /// and the text is shown as given. Pass null to go back to the default text.
+    /// </summary>
+    public void SetSegmentText(string segment, string text)
+    {
+        Modify(segment, x => x with { Text = text });
+    }
+
     public void RelinkSegment(string text, string url)
     {
-        var key = NormalizeUri(_navigationManager.Uri);
-        if (_modifiers.TryGetValue(key, out var modifiers))
-        {
-            var item = modifiers.FirstOrDefault(x => x.Text == text);
-            if (item == null)
-            {
-                modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url });
-                Build(_navigationManager, this);
-            }
-        }
-        else
-        {
-            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url }]);
-            Build(_navigationManager, this);
-        }
+        Modify(text, x => x.Modifyer == null ? x with { Modifyer = Modifyer.Relink, RelinkUrl = url } : x);
     }
 
     public void UnlinkSegment(string text)
     {
-        var key = NormalizeUri(_navigationManager.Uri);
-        if (_modifiers.TryGetValue(key, out var modifiers))
-        {
-            var item = modifiers.FirstOrDefault(x => x.Text == text);
-            if (item == null)
-            {
-                modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Unlink });
-                Build(_navigationManager, this);
-            }
-        }
-        else
-        {
-            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Unlink }]);
-            Build(_navigationManager, this);
-        }
+        Modify(text, x => x.Modifyer == null ? x with { Modifyer = Modifyer.Unlink } : x);
     }
 
     public void RemoveSegment(string text)
     {
+        Modify(text, x => x.Modifyer == null ? x with { Modifyer = Modifyer.Remove } : x);
+    }
+
+    private void Modify(string segment, Func<Modifier, Modifier> change)
+    {
         var key = NormalizeUri(_navigationManager.Uri);
-        if (_modifiers.TryGetValue(key, out var modifiers))
+        if (!_modifiers.TryGetValue(key, out var modifiers))
         {
-            var item = modifiers.FirstOrDefault(x => x.Text == text);
-            if (item == null)
-            {
-                modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Remove });
-                Build(_navigationManager, this);
-            }
+            modifiers = new Dictionary<string, Modifier>(StringComparer.InvariantCultureIgnoreCase);
+            _modifiers.Add(key, modifiers);
         }
-        else
-        {
-            _modifiers.Add(key, [new Modifier { Text = text, Modifyer = Modifyer.Remove }]);
-            Build(_navigationManager, this);
-        }
+
+        var current = modifiers.GetValueOrDefault(segment) ?? new Modifier();
+        var updated = change(current);
+        if (updated == current) return;
+
+        modifiers[segment] = updated;
+        Build(_navigationManager, this);
+    }
+
+    record Crumb
+    {
+        public required string Text { get; init; }
+        public string Path { get; init; }
+        public string TextOverride { get; init; }
+
+        /// <summary>The URL segment and its route path; null for virtual segments.</summary>
+        public string Segment { get; init; }
+        public string SegmentPath { get; init; }
     }
 
     record Modifier
     {
-        public required string Text { get; init; }
-        public required Modifyer Modifyer { get; init; }
+        public Modifyer? Modifyer { get; init; }
         public string RelinkUrl { get; init; }
+        public string Text { get; init; }
     }
 
     public enum Modifyer

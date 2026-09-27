@@ -23,6 +23,40 @@ public class AddThargaBlazorTests
     }
 
     [Fact]
+    public void AddThargaBlazor_BreadCrumbService_UsesRegisteredTextProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped<Microsoft.AspNetCore.Components.NavigationManager>(_ => new FakeNavigationManager("https://localhost/cases"));
+        services.AddScoped<IBreadCrumbTextProvider, SwedishTextProvider>();
+
+        services.AddThargaBlazor();
+
+        var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<BreadCrumbService>();
+        Assert.Equal("Ärenden", service.BreadCrumbItems.Single().Text);
+    }
+
+    [Fact]
+    public void AddThargaBlazor_BreadCrumbService_WorksWithoutTextProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped<Microsoft.AspNetCore.Components.NavigationManager>(_ => new FakeNavigationManager("https://localhost/cases"));
+
+        services.AddThargaBlazor();
+
+        var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<BreadCrumbService>();
+        Assert.Equal("Cases", service.BreadCrumbItems.Single().Text);
+    }
+
+    private class SwedishTextProvider : IBreadCrumbTextProvider
+    {
+        public string? GetText(string segment, string path) => segment == "cases" ? "Ärenden" : null;
+    }
+
+    [Fact]
     public void AddThargaBlazor_RegistersBlazoredLocalStorage()
     {
         var services = new ServiceCollection();
