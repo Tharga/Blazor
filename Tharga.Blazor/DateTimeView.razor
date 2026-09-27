@@ -42,17 +42,29 @@
     /// </summary>
     /// <remarks>
     /// Intervals below one second are raised to one second: this component shows no finer
-    /// granularity, and a grid multiplies the cost by its row count. Ignored when
-    /// <see cref="Display"/> is <see cref="EDateTimeDisplay.Absolute"/>, which cannot go stale.
+    /// granularity, and a grid multiplies the cost by its row count. Ignored unless
+    /// <see cref="Display"/> is <see cref="EDateTimeDisplay.Relative"/>; the other forms cannot go stale.
     /// </remarks>
     [Parameter]
     public TimeSpan? RefreshInterval { get; set; }
 
-    private string Text => Display == EDateTimeDisplay.Absolute ? Absolute : Relative;
+    private string Text => Display switch
+    {
+        EDateTimeDisplay.Absolute => Absolute,
+        EDateTimeDisplay.Date => DateOnly,
+        _ => Relative
+    };
 
-    private string Tooltip => Display == EDateTimeDisplay.Absolute ? Relative : Absolute;
+    private string Tooltip => Display switch
+    {
+        EDateTimeDisplay.Absolute => Relative,
+        EDateTimeDisplay.Date => Date == null ? string.Empty : $"{Absolute} · {Relative}",
+        _ => Absolute
+    };
 
     private string Absolute => Date.ToLocalDateTimeString();
+
+    private string DateOnly => Date.ToLocalDateString();
 
     private string Relative => Date.ToLocalDurationString(new DurationOptions
     {
@@ -80,7 +92,7 @@
 
     private TimeSpan? EffectiveInterval()
     {
-        if (RefreshInterval == null || Display == EDateTimeDisplay.Absolute) return null;
+        if (RefreshInterval == null || Display != EDateTimeDisplay.Relative) return null;
         return RefreshInterval.Value < MinimumRefreshInterval ? MinimumRefreshInterval : RefreshInterval.Value;
     }
 

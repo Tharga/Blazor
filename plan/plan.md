@@ -2,9 +2,10 @@
 
 ## Steps
 - [x] 1. NuGet update — `dotnet outdated` reports nothing; no dependency commit needed.
-- [~] 2. Tests first for `EDateTimeDisplay.Date`: text, tooltip, Swedish tooltip, no timer, null date
-- [ ] 3. Implement: enum member, `Text`/`Tooltip` via a switch, `EffectiveInterval` skips `Date`; update enum docs
-- [ ] 4. Drop `Microsoft.NET.Test.Sdk` and `xunit.runner.visualstudio`; verify test count unchanged
+- [x] 2. Tests: text, tooltip, Swedish tooltip, null date (empty tooltip, not a lone " · "), no timer. 4 new.
+- [x] 3. `EDateTimeDisplay.Date` appended; `Text`/`Tooltip` are switches; refresh now runs only for `Relative`
+      (was "not Absolute"). Enum and `RefreshInterval` docs updated. 126/126.
+- [~] 4. Drop `Microsoft.NET.Test.Sdk` and `xunit.runner.visualstudio`; verify test count unchanged
 - [ ] 5. Docs: README + `docs/articles/datetimeview.md`
 - [ ] 6. Close-out
 

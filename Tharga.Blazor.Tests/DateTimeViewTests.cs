@@ -119,6 +119,44 @@ public class DateTimeViewTests : BunitContext
     }
 
     [Fact]
+    public void DateDisplayShowsTheDayAndTheTooltipCarriesTheTimestampAndTheElapsedTime()
+    {
+        _options.Language = Language.En;
+        var expectedTooltip = TwoHoursAgo.ToLocalDateTimeString() + " · " + TwoHoursAgo.ToLocalDurationString(new DurationOptions
+        {
+            StringOptions = DurationStringOptionsExtensions.Get(Language.En)
+        });
+
+        var view = RenderView(parameters => parameters.Add(x => x.Display, EDateTimeDisplay.Date));
+
+        var span = view.Find("span");
+        Assert.Equal(TwoHoursAgo.ToLocalDateString(), span.TextContent);
+        Assert.Equal(expectedTooltip, span.GetAttribute("title"));
+    }
+
+    [Fact]
+    public void DateDisplayTooltipFollowsTheResolvedLanguage()
+    {
+        _provider.Language = Language.Sv;
+
+        var view = RenderView(parameters => parameters.Add(x => x.Display, EDateTimeDisplay.Date));
+
+        Assert.Contains(SwedishMarker, view.Find("span").GetAttribute("title"));
+    }
+
+    [Fact]
+    public void DateDisplayWithANullDateRendersAnEmptySpan()
+    {
+        var view = Render<DateTimeView>(parameters => parameters
+            .Add(x => x.Date, (DateTime?)null)
+            .Add(x => x.Display, EDateTimeDisplay.Date));
+
+        var span = view.Find("span");
+        Assert.Equal(string.Empty, span.TextContent);
+        Assert.True(string.IsNullOrEmpty(span.GetAttribute("title")));
+    }
+
+    [Fact]
     public void ANullDateRendersAnEmptySpan()
     {
         var view = Render<DateTimeView>(parameters => parameters.Add(x => x.Date, (DateTime?)null));
@@ -153,6 +191,19 @@ public class DateTimeViewTests : BunitContext
     {
         var view = RenderView(parameters => parameters
             .Add(x => x.Display, EDateTimeDisplay.Absolute)
+            .Add(x => x.RefreshInterval, TimeSpan.FromSeconds(1)));
+        var initial = view.RenderCount;
+
+        await Task.Delay(TimeSpan.FromSeconds(1.5), Xunit.TestContext.Current.CancellationToken);
+
+        Assert.Equal(initial, view.RenderCount);
+    }
+
+    [Fact]
+    public async Task ARefreshIntervalIsIgnoredForADateDisplay()
+    {
+        var view = RenderView(parameters => parameters
+            .Add(x => x.Display, EDateTimeDisplay.Date)
             .Add(x => x.RefreshInterval, TimeSpan.FromSeconds(1)));
         var initial = view.RenderCount;
 
