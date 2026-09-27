@@ -5,8 +5,9 @@
 - [x] 2. Tests: text, tooltip, Swedish tooltip, null date (empty tooltip, not a lone " · "), no timer. 4 new.
 - [x] 3. `EDateTimeDisplay.Date` appended; `Text`/`Tooltip` are switches; refresh now runs only for `Relative`
       (was "not Absolute"). Enum and `RefreshInterval` docs updated. 126/126.
-- [~] 4. Drop `Microsoft.NET.Test.Sdk` and `xunit.runner.visualstudio`; verify test count unchanged
-- [ ] 5. Docs: README + `docs/articles/datetimeview.md`
+- [x] 4. Dropped both packages. `Microsoft.NET.Test.Sdk` had been supplying `OutputType=Exe`, which xunit v3
+      requires, so it is now declared in the csproj. 126/126, and the CI coverage command still produces cobertura.
+- [~] 5. Docs: README + `docs/articles/datetimeview.md`
 - [ ] 6. Close-out
 
 ## Notes
