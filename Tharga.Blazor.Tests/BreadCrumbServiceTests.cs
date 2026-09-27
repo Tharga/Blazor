@@ -150,6 +150,19 @@ public class BreadCrumbServiceTests
     }
 
     [Fact]
+    public void Modifiers_DifferingOnlyInCase_DoNotThrow()
+    {
+        var nav = new FakeNavigationManager("https://localhost/cases/abc/records/def");
+        var svc = new BreadCrumbService(nav);
+        svc.RemoveSegment("records");
+
+        svc.UnlinkSegment("Records");
+
+        var items = svc.BreadCrumbItems.ToArray();
+        Assert.DoesNotContain(items, x => x.Text == "Records");
+    }
+
+    [Fact]
     public void RemoveVirtualSegments_DoesNotFireEventWhenAlreadyEmpty()
     {
         var nav = new FakeNavigationManager("https://localhost/developer/log");

@@ -147,7 +147,7 @@ public class BreadCrumbService
         var key = NormalizeUri(_navigationManager.Uri);
         if (_modifiers.TryGetValue(key, out var modifiers))
         {
-            var item = modifiers.FirstOrDefault(x => x.Text == text);
+            var item = modifiers.FirstOrDefault(x => x.Text.Equals(text, StringComparison.InvariantCultureIgnoreCase));
             if (item == null)
             {
                 modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Relink, RelinkUrl = url });
@@ -166,7 +166,7 @@ public class BreadCrumbService
         var key = NormalizeUri(_navigationManager.Uri);
         if (_modifiers.TryGetValue(key, out var modifiers))
         {
-            var item = modifiers.FirstOrDefault(x => x.Text == text);
+            var item = modifiers.FirstOrDefault(x => x.Text.Equals(text, StringComparison.InvariantCultureIgnoreCase));
             if (item == null)
             {
                 modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Unlink });
@@ -185,7 +185,7 @@ public class BreadCrumbService
         var key = NormalizeUri(_navigationManager.Uri);
         if (_modifiers.TryGetValue(key, out var modifiers))
         {
-            var item = modifiers.FirstOrDefault(x => x.Text == text);
+            var item = modifiers.FirstOrDefault(x => x.Text.Equals(text, StringComparison.InvariantCultureIgnoreCase));
             if (item == null)
             {
                 modifiers.Add(new Modifier { Text = text, Modifyer = Modifyer.Remove });

@@ -3,8 +3,9 @@
 ## Steps
 - [x] 1. NuGet update — Radzen.Blazor 11.3.2 → 11.5.0, bunit 2.11.3, Microsoft.NET.Test.Sdk 18.10.1, Moq 4.21.0,
       xunit.v3 4.0.1. No majors. 102/102 tests pass. Commit `1daf201`.
-- [~] 2. Fix case-sensitive modifier add-check (#27 bug) — failing test first, then fix
-- [ ] 3. `SetSegmentText` — restructure modifiers so a segment can carry a text override plus one link/remove modifier
+- [x] 2. Fix case-sensitive modifier add-check (#27 bug) — test `Modifiers_DifferingOnlyInCase_DoNotThrow` reproduced
+      the `InvalidOperationException`; add-check now `InvariantCultureIgnoreCase` like `Build`. First modifier still wins.
+- [~] 3. `SetSegmentText` — restructure modifiers so a segment can carry a text override plus one link/remove modifier
 - [ ] 4. `IBreadCrumbTextProvider` — resolved via `GetService`, applied in `BreadCrumbItems`, precedence: explicit text → provider → URL text
 - [ ] 5. `Refresh()`
 - [ ] 6. `BreadCrumbs.razor` and `Title.razor`: unsubscribe on dispose; remove redundant initializers/usings
