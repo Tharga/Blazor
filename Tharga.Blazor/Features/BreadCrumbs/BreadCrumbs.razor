@@ -2,6 +2,7 @@
 @rendermode CustomRenderModes.StandardMode
 @inject BreadCrumbService BreadCrumbService
 @inject IOptions<BlazorOptions> Options
+@implements IDisposable
 
 <span style="@Style">
     @if (ShowRoot)
@@ -31,7 +32,7 @@
 @code {
 
     [Parameter]
-    public bool ShowRoot { get; set; } = false;
+    public bool ShowRoot { get; set; }
 
     [Parameter]
     public string Style { get; set; }
@@ -41,8 +42,18 @@
     protected override async Task OnInitializedAsync()
     {
         MainTitle = Options?.Value.Title ?? "Home";
-        BreadCrumbService.ChangeEvent += async (_, _) => { await InvokeAsync(StateHasChanged); };
+        BreadCrumbService.ChangeEvent += OnChange;
         await InvokeAsync(StateHasChanged);
         await base.OnInitializedAsync();
+    }
+
+    private async void OnChange(object sender, EventArgs e)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        BreadCrumbService.ChangeEvent -= OnChange;
     }
 }

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Tharga.Toolkit;
 
 namespace Tharga.Blazor.Features.BreadCrumbs;
 

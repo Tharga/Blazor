@@ -452,7 +452,7 @@ public class BreadCrumbServiceTests
             set => _texts[segment] = value;
         }
 
-        public string GetText(string segment, string path)
+        public string? GetText(string segment, string path)
         {
             Calls.Add((segment, path));
             return _texts.GetValueOrDefault(segment);

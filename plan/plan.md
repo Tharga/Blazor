@@ -15,15 +15,20 @@
       already comes from the host). Precedence: explicit text → provider → capitalised URL text.
 - [x] 5. `Refresh()` — raises `ChangeEvent`; no rebuild needed since text is resolved on read.
       Steps 3–5: 17 new tests, 120/120 pass.
-- [~] 6. `BreadCrumbs.razor` and `Title.razor`: unsubscribe on dispose; remove redundant initializers/usings
-- [ ] 7. Full test suite green; commit
-- [ ] 8. Docs: README + `docs/articles/breadcrumbs.md` (at close-out)
+- [x] 6. `BreadCrumbs.razor` and `Title.razor`: handlers are now named methods, removed in `Dispose` (plain
+      `IDisposable` — nothing to await, so `DateTimeView`'s async pattern was not needed). Removed `= false` / `= null`
+      initializers and the unused `using Tharga.Toolkit` in `BreadCrumbService.cs`. `EventUnsubscribeTests` counts the
+      event's handlers by reflection before render and after dispose; both tests were run against the old
+      components and failed, so they do catch the leak.
+- [x] 7. Full test suite green — 122/122, no warnings.
+- [~] 8. Docs: README + `docs/articles/breadcrumbs.md` (at close-out)
 
 ## Notes
 - Branch `feature/breadcrumb-segment-text` from `master` (GitHub Actions → PR to master).
 
 ## Last session
-2026-09-27 — branch created, dependencies updated, plan written. Next: step 2.
+2026-09-27 — steps 1–7 done: dependencies, case bug, `SetSegmentText`, `IBreadCrumbTextProvider`, `Refresh()`,
+dispose fixes. 102 → 122 tests. Next: user tests the pushed branch; docs (step 8) and close-out once confirmed.
 
 ## README changes needed at completion
 - Breadcrumbs section: `SetSegmentText`, `IBreadCrumbTextProvider`, `Refresh()`.

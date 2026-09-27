@@ -53,7 +53,7 @@ public class AddThargaBlazorTests
 
     private class SwedishTextProvider : IBreadCrumbTextProvider
     {
-        public string GetText(string segment, string path) => segment == "cases" ? "Ärenden" : null;
+        public string? GetText(string segment, string path) => segment == "cases" ? "Ärenden" : null;
     }
 
     [Fact]
