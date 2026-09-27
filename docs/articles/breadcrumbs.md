@@ -45,6 +45,64 @@ BreadCrumbService.RelinkSegment("Items", "/items?status=active");
 
 // Render a segment as text (no link)
 BreadCrumbService.UnlinkSegment("Current");
+
+// Drop a segment from the trail
+BreadCrumbService.RemoveSegment("Records");
+```
+
+Segments are matched by their URL text, ignoring case. Each change applies to the current URL only (query string ignored), so it is typically made from the page that owns the route. A segment takes one link change: the first of relink, unlink or remove wins.
+
+## Change a segment's text
+
+Route segments are often ids. `SetSegmentText` shows a readable name instead, while the segment keeps its position and its link:
+
+```csharp
+// On /cases/7318ed96/records/6ab8cfeb
+BreadCrumbService.SetSegmentText(caseId, "KS 2026-14");
+BreadCrumbService.SetSegmentText(recordId, "Handling 4");
+```
+
+This renders **Cases › KS 2026-14 › Records › Handling 4**. The text is shown exactly as given, not capitalised. It combines with `RelinkSegment` and `UnlinkSegment`, calling it again replaces the text, and passing `null` restores the default.
+
+## Translate segments
+
+Static segments show their URL text, capitalised (`cases` → **Cases**). To translate them app-wide, register an `IBreadCrumbTextProvider`:
+
+```csharp
+public class BreadCrumbTexts : IBreadCrumbTextProvider
+{
+    private readonly LanguageResolver _language;
+
+    public BreadCrumbTexts(LanguageResolver language) => _language = language;
+
+    public string GetText(string segment, string path)
+    {
+        if (_language.Resolve() != Language.Sv) return null;
+
+        return segment switch
+        {
+            "cases" => "Ärenden",
+            "records" => "Handlingar",
+            _ => null
+        };
+    }
+}
+
+builder.Services.AddScoped<IBreadCrumbTextProvider, BreadCrumbTexts>();
+```
+
+- `segment` is the URL text of the segment; `path` is the route up to and including it, without a leading slash (`cases/7318ed96`).
+- Return `null` to keep the default capitalised text.
+- The provider is asked every time the trail is read, so it follows the current language.
+- Text set with `SetSegmentText` wins over the provider.
+- It applies to segments from the URL only. Virtual segments and promoted query parameters already carry the text you gave them.
+
+## Refresh after a language change
+
+The trail re-renders on navigation and whenever the service changes. When something else changes what it should show — typically the language — call `Refresh()`:
+
+```csharp
+BreadCrumbService.Refresh();
 ```
 
 ## Rendering inside a layout

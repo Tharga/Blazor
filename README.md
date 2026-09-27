@@ -81,10 +81,19 @@ BreadCrumbService.AddVirtualSegment("Details", "/items/42");
 // Convert a query parameter into a breadcrumb
 BreadCrumbService.RegisterVirtualSegmentQueryParam("category");
 
-// Relink or unlink segments
+// Relink, unlink or remove segments
 BreadCrumbService.RelinkSegment("Items", "/items?status=active");
 BreadCrumbService.UnlinkSegment("Current");
+BreadCrumbService.RemoveSegment("Records");
+
+// Show a readable name for an id segment, keeping its position and link
+BreadCrumbService.SetSegmentText(caseId, "KS 2026-14");
+
+// Re-render the trail, e.g. after a language change
+BreadCrumbService.Refresh();
 ```
+
+Register an `IBreadCrumbTextProvider` to translate URL segments app-wide (`cases` → `Ärenden`). It is asked every time the trail is read; returning `null` keeps the default capitalised text. See the [breadcrumbs article](https://blazor.tharga.net/articles/breadcrumbs.html) for details.
 
 ### Error Handling
 
