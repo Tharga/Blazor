@@ -86,7 +86,7 @@ public class TimeSpanViewTests : BunitContext
     [Fact]
     public void ANullTimeSpanRendersAnEmptySpan()
     {
-        var view = Render<TimeSpanView>(parameters => parameters.Add(x => x.TimeSpan, (TimeSpan?)null));
+        var view = Render<TimeSpanView>(parameters => parameters.Add(x => x.TimeSpan, null));
 
         Assert.Equal(string.Empty, view.Find("span").TextContent);
     }

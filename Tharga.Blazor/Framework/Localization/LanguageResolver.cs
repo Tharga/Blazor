@@ -41,6 +41,8 @@ public class LanguageResolver
     /// <param name="language">The component's explicit language, or <c>null</c> to resolve one.</param>
     public Language Resolve(Language? language = null)
     {
+        // A hand-built IOptions can return a null Value, and resolution must never throw.
+        // ReSharper disable once ConstantConditionalAccessQualifier
         return language
                ?? _languageProvider?.GetLanguage()
                ?? _options?.Value?.Language

@@ -148,7 +148,7 @@ public class DateTimeViewTests : BunitContext
     public void DateDisplayWithANullDateRendersAnEmptySpan()
     {
         var view = Render<DateTimeView>(parameters => parameters
-            .Add(x => x.Date, (DateTime?)null)
+            .Add(x => x.Date, null)
             .Add(x => x.Display, EDateTimeDisplay.Date));
 
         var span = view.Find("span");
@@ -159,7 +159,7 @@ public class DateTimeViewTests : BunitContext
     [Fact]
     public void ANullDateRendersAnEmptySpan()
     {
-        var view = Render<DateTimeView>(parameters => parameters.Add(x => x.Date, (DateTime?)null));
+        var view = Render<DateTimeView>(parameters => parameters.Add(x => x.Date, null));
 
         Assert.Equal(string.Empty, view.Find("span").TextContent);
     }
