@@ -5,7 +5,7 @@
 
 Drop-in Blazor UI components for common application needs — buttons with busy states, breadcrumb navigation, error boundaries, expandable cards, and more. Works with both **Blazor Server** and **Blazor WebAssembly**.
 
-Built on [Radzen.Blazor](https://blazor.radzen.com/). Targets **.NET 10**.
+Built on [Radzen.Blazor](https://blazor.radzen.com/) 12. Targets **.NET 10**.
 
 ## Quick Start
 
@@ -25,4 +25,4 @@ builder.Services.AddThargaBlazor(o => o.Title = "My Application");
 - **Layout** — `ExpandableCard`, `Loading`, `Title`.
 - **Dates and durations** — `DateTimeView`, `TimeSpanView`, in English or Swedish, absolute or relative, with an opt-in refresh for relative labels.
 
-For full documentation and usage examples, see the [GitHub README](https://github.com/Tharga/Toolkit-Blazor).
+For full documentation and usage examples, see the [GitHub README](https://github.com/Tharga/Blazor).
