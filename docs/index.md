@@ -4,7 +4,7 @@ _layout: landing
 
 # Tharga.Blazor
 
-Generic reusable Blazor UI components built on [Radzen.Blazor](https://blazor.radzen.com/) — buttons with built-in busy/error handling, route-aware breadcrumbs, a custom error boundary, expandable cards, and small display helpers. Works with both **Blazor Server** and **Blazor WebAssembly**. Targets **.NET 9** and **.NET 10**.
+Generic reusable Blazor UI components built on [Radzen.Blazor](https://blazor.radzen.com/) — buttons with built-in busy/error handling, route-aware breadcrumbs, a custom error boundary, expandable cards, and small display helpers. Works with both **Blazor Server** and **Blazor WebAssembly**. Targets **.NET 10**.
 
 ## Package
 

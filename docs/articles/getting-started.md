@@ -6,7 +6,7 @@
 dotnet add package Tharga.Blazor
 ```
 
-Tharga.Blazor targets **.NET 9** and **.NET 10** and is built on [Radzen.Blazor](https://blazor.radzen.com/). It works with both Blazor Server and Blazor WebAssembly.
+Tharga.Blazor targets **.NET 10** and is built on [Radzen.Blazor](https://blazor.radzen.com/). It works with both Blazor Server and Blazor WebAssembly.
 
 ## Register services
 
