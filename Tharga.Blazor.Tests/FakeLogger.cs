@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Tharga.Blazor.Tests;
 
+// No test asserts on Message; it is kept so a failing Assert.Single or Assert.Empty shows what was logged.
+// ReSharper disable once NotAccessedPositionalProperty.Global
 internal record LogEntry(LogLevel Level, Exception? Exception, string Message);
 
 internal class FakeLogger<T> : ILogger<T>

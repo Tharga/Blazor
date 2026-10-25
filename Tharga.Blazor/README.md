@@ -5,7 +5,7 @@
 
 Drop-in Blazor UI components for common application needs — buttons with busy states, breadcrumb navigation, error boundaries, expandable cards, and more. Works with both **Blazor Server** and **Blazor WebAssembly**.
 
-Built on [Radzen.Blazor](https://blazor.radzen.com/). Targets **.NET 9** and **.NET 10**.
+Built on [Radzen.Blazor](https://blazor.radzen.com/). Targets **.NET 10**.
 
 ## Quick Start
 

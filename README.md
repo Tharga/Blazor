@@ -139,7 +139,6 @@ A relative label describes a moving quantity but only recomputes when the compon
 
 ## Target Frameworks
 
-- .NET 9
 - .NET 10
 
 ## Dependencies

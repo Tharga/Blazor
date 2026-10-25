@@ -67,7 +67,7 @@ public class BreadCrumbService
                     if (!modifiers.TryGetValue(x.Text, out var item)) return x;
 
                     var crumb = x with { TextOverride = item.Text };
-                    switch (item.Modifyer)
+                    switch (item.Kind)
                     {
                         case Modifyer.Remove:
                             return null;
@@ -182,17 +182,17 @@ public class BreadCrumbService
 
     public void RelinkSegment(string text, string url)
     {
-        Modify(text, x => x.Modifyer == null ? x with { Modifyer = Modifyer.Relink, RelinkUrl = url } : x);
+        Modify(text, x => x.Kind == null ? x with { Kind = Modifyer.Relink, RelinkUrl = url } : x);
     }
 
     public void UnlinkSegment(string text)
     {
-        Modify(text, x => x.Modifyer == null ? x with { Modifyer = Modifyer.Unlink } : x);
+        Modify(text, x => x.Kind == null ? x with { Kind = Modifyer.Unlink } : x);
     }
 
     public void RemoveSegment(string text)
     {
-        Modify(text, x => x.Modifyer == null ? x with { Modifyer = Modifyer.Remove } : x);
+        Modify(text, x => x.Kind == null ? x with { Kind = Modifyer.Remove } : x);
     }
 
     private void Modify(string segment, Func<Modifier, Modifier> change)
@@ -225,7 +225,7 @@ public class BreadCrumbService
 
     record Modifier
     {
-        public Modifyer? Modifyer { get; init; }
+        public Modifyer? Kind { get; init; }
         public string RelinkUrl { get; init; }
         public string Text { get; init; }
     }
