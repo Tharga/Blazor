@@ -36,6 +36,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Tharga.Blazor.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Kept only so AddThargaBlazor can go on registering ILocalStorageService for applications that
+      inject it. No component uses it. The package is archived upstream; remove it, and the
+      registration, in the next major version.
+    -->
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
     <PackageReference Include="Radzen.Blazor" Version="12.1.6" />
