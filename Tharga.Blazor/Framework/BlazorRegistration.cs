@@ -9,6 +9,16 @@ namespace Tharga.Blazor.Framework;
 
 public static class BlazorRegistration
 {
+    /// <summary>
+    /// Registers the services Tharga.Blazor components depend on, and binds <see cref="BlazorOptions"/>
+    /// from <paramref name="configure"/> and the <c>Tharga:Blazor</c> section of <paramref name="configuration"/>.
+    /// </summary>
+    /// <remarks>
+    /// This also registers Blazored.LocalStorage's <c>ILocalStorageService</c>. That registration is
+    /// deprecated: no Tharga.Blazor component uses it any more, and it will be removed in a future major
+    /// version. An application that injects <c>ILocalStorageService</c> should reference
+    /// Blazored.LocalStorage and call <c>AddBlazoredLocalStorage()</c> itself.
+    /// </remarks>
     public static void AddThargaBlazor(this IServiceCollection services, Action<BlazorOptions> configure = null, IConfiguration configuration = null)
     {
         services.AddScoped<BreadCrumbService>();

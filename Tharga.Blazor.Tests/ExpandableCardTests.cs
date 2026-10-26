@@ -1,4 +1,3 @@
-using Blazored.LocalStorage;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,12 +16,12 @@ public class ExpandableCardTests : BunitContext
     private const string BodyMarker = "expandable-card-body";
     private const string TitleBarSelector = "div[style*=\"cursor: pointer\"]";
 
-    private readonly FakeLocalStorageService _storage = new();
+    private readonly FakeBrowserStorage _storage = new();
 
     public ExpandableCardTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
-        Services.AddSingleton<ILocalStorageService>(_storage);
+        Services.AddSingleton<IJSRuntime>(_storage);
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
     }
 
@@ -226,6 +225,77 @@ public class ExpandableCardTests : BunitContext
         Assert.False(IsExpanded(card));
         Assert.Equal(1, card.RenderCount);
     }
+
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    public void ValueSavedByEarlierVersions_IsRestored(string savedValue, bool expanded)
+    {
+        _storage.SeedRaw(ExplicitStorageKey, savedValue);
+
+        var card = RenderCard(p =>
+        {
+            p.Add(x => x.StateKey, ExplicitKey);
+            p.Add(x => x.Selected, !expanded);
+        });
+
+        Assert.Equal(expanded, IsExpanded(card));
+    }
+
+    [Fact]
+    public void Toggling_StoresTheSameFormatEarlierVersionsWrote()
+    {
+        var card = RenderCard(p => p.Add(x => x.StateKey, ExplicitKey));
+
+        ClickTitleBar(card);
+
+        card.WaitForAssertion(() => Assert.Equal("true", _storage.Raw(ExplicitStorageKey)));
+    }
+
+    [Fact]
+    public void UnreadableStoredValue_FallsBackToTheSelectedDefault()
+    {
+        _storage.SeedRaw(ExplicitStorageKey, "not json");
+
+        var card = RenderCard(p =>
+        {
+            p.Add(x => x.StateKey, ExplicitKey);
+            p.Add(x => x.Selected, true);
+        });
+
+        Assert.True(IsExpanded(card));
+    }
+}
+
+public class ExpandableCardDisconnectedCircuitTests : BunitContext
+{
+    private const string BodyMarker = "expandable-card-body";
+    private const string TitleBarSelector = "div[style*=\"cursor: pointer\"]";
+
+    private readonly FakeBrowserStorage _storage = new() { Failure = new JSDisconnectedException("The circuit has disconnected.") };
+
+    public ExpandableCardDisconnectedCircuitTests()
+    {
+        Services.AddSingleton<IJSRuntime>(_storage);
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+    }
+
+    [Fact]
+    public void DisconnectedCircuit_StillRendersAndTogglesTheCard()
+    {
+        var card = Render<ExpandableCard>(parameters =>
+        {
+            parameters.Add(x => x.Text, "Secrecy classes");
+            parameters.AddChildContent($"<p>{BodyMarker}</p>");
+        });
+        card.WaitForState(() => card.RenderCount > 0);
+
+        Assert.DoesNotContain(BodyMarker, card.Markup);
+
+        card.Find(TitleBarSelector).Click();
+
+        Assert.Contains(BodyMarker, card.Markup);
+    }
 }
 
 public class ExpandableCardUnavailableStorageTests : BunitContext
@@ -234,12 +304,12 @@ public class ExpandableCardUnavailableStorageTests : BunitContext
     private const string TitleBarSelector = "div[style*=\"cursor: pointer\"]";
     private const string StorageKey = "ExpandableCard.Secrecy classes.Selected";
 
-    private readonly FakeLocalStorageService _storage = new() { Failure = new JSException("localStorage is not available") };
+    private readonly FakeBrowserStorage _storage = new() { Failure = new JSException("localStorage is not available") };
 
     public ExpandableCardUnavailableStorageTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
-        Services.AddSingleton<ILocalStorageService>(_storage);
+        Services.AddSingleton<IJSRuntime>(_storage);
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
     }
 

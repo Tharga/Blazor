@@ -6,7 +6,7 @@
 dotnet add package Tharga.Blazor
 ```
 
-Tharga.Blazor targets **.NET 10** and is built on [Radzen.Blazor](https://blazor.radzen.com/). It works with both Blazor Server and Blazor WebAssembly.
+Tharga.Blazor targets **.NET 10** and is built on [Radzen.Blazor](https://blazor.radzen.com/) 12. It works with both Blazor Server and Blazor WebAssembly.
 
 ## Register services
 
@@ -49,9 +49,11 @@ With the configuration overload, settings come from the `Tharga:Blazor` section 
 `AddThargaBlazor` registers:
 
 - `BreadCrumbService` (scoped)
-- `ILocalStorageService` from [Blazored.LocalStorage](https://github.com/Blazored/LocalStorage)
+- `ILocalStorageService` from [Blazored.LocalStorage](https://github.com/Blazored/LocalStorage) — **deprecated**, see below
 - `IOptions<BlazorOptions>` for configuration
 - `IBlazorLanguageProvider` and `LanguageResolver` (scoped) — both with `TryAdd`, so registering your own provider replaces the built-in one
+
+The `ILocalStorageService` registration is deprecated and will be removed in a future major version. No Tharga.Blazor component uses it any more, and Blazored.LocalStorage is archived upstream. If your application injects `ILocalStorageService`, reference Blazored.LocalStorage and call `AddBlazoredLocalStorage()` yourself.
 
 ## Add the Radzen prerequisites
 
@@ -87,3 +89,4 @@ Drop a copy button next to an inline value:
 - [Buttons](buttons.md) — `ActionButton`, `StandardButton`, `CopyButton`, `CancelButton`.
 - [Breadcrumbs](breadcrumbs.md) — virtual segments, query-param promotion, relinking.
 - [Error boundary](errorboundary.md) — correlation-id logging, access-denied handling, stack-trace opt-in.
+- [Upgrading](upgrading.md) — what to check when moving to a new version.

@@ -94,7 +94,9 @@ title is translated or repeated.
 ### Rendering and interactivity
 
 Persistence needs an interactive renderer, because local storage is reached through JavaScript
-interop. Under prerendering or static server rendering the card renders at `Selected` and storage is
+interop. The card calls the browser's `localStorage` directly, so it needs no service registration
+and no script of its own. Values are stored as JSON (`true` or `false`), the same format earlier
+versions wrote through Blazored.LocalStorage, so a remembered state survives the upgrade. Under prerendering or static server rendering the card renders at `Selected` and storage is
 left alone.
 
 On an interactive renderer the stored value is read **before the card's first render**, so the card
@@ -104,8 +106,8 @@ initial load of an interactive circuit this is invisible, because Blazor waits f
 hierarchy to settle before showing the page; navigating to a page later in the same session, the card
 appears a moment after the rest of the page rather than flickering.
 
-If local storage is unavailable — blocked by browser policy, for instance — the card falls back to
-`Selected` and keeps working. It does not fail to render.
+If local storage is unavailable — blocked by browser policy, or the circuit has disconnected — the
+card falls back to `Selected` and keeps working, without remembering the state. It does not fail to render.
 
 ## Parameters
 

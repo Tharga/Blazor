@@ -12,3 +12,5 @@
   href: errorboundary.md
 - name: Date and duration views
   href: datetimeview.md
+- name: Upgrading
+  href: upgrading.md

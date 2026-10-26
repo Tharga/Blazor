@@ -47,9 +47,13 @@ Configuration section in `appsettings.json`:
 
 This registers:
 - `BreadCrumbService` (scoped)
-- `ILocalStorageService` from Blazored.LocalStorage
+- `ILocalStorageService` from Blazored.LocalStorage — **deprecated**, see below
 - `IOptions<BlazorOptions>` for configuration
 - `IBlazorLanguageProvider` and `LanguageResolver` (scoped), both with `TryAdd`
+
+The `ILocalStorageService` registration is deprecated and will be removed in a future major version. No Tharga.Blazor component uses it: `ExpandableCard` reaches the browser's local storage directly. Blazored.LocalStorage is archived upstream. If your application injects `ILocalStorageService`, reference Blazored.LocalStorage and call `AddBlazoredLocalStorage()` yourself, so that nothing changes for you when the registration goes.
+
+Radzen is not registered for you. Add `builder.Services.AddRadzenComponents();` and render `<RadzenComponents />` in your layout, as the [getting started guide](https://blazor.tharga.net/articles/getting-started.html) shows.
 
 ## Components
 
@@ -115,7 +119,7 @@ builder.Services.AddThargaBlazor(o => o.ShowExceptionDetails = builder.Environme
 
 ### Layout & Display
 
-- **`ExpandableCard`** — Collapsible card with an optional leading icon or image, header menu, and local storage state persistence (`AllowSaveState`, keyed by `StateKey`).
+- **`ExpandableCard`** — Collapsible card with an optional leading icon or image, header menu, and local storage state persistence (`AllowSaveState`, keyed by `StateKey`). Needs no service registration of its own.
 - **`Loading`** — Indeterminate progress indicator (centered or inline).
 - **`Title`** — Dynamic page title based on route and `BlazorOptions.Title`.
 - **`DateTimeView`** — Date/time display: relative, absolute, or the day alone, with whatever the text leaves out as the tooltip. Renders in English or Swedish, and can recompute a relative label on an interval.
@@ -137,14 +141,27 @@ builder.Services.AddScoped<IBlazorLanguageProvider, TenantLanguageProvider>();
 
 A relative label describes a moving quantity but only recomputes when the component renders, so in a static grid it goes stale. `Display="EDateTimeDisplay.Absolute"` (or `Date`, for narrow columns) avoids the problem entirely, and `RefreshInterval` opts into recomputing it. See [Date and duration views](https://blazor.tharga.net/articles/datetimeview.html).
 
+## Upgrading
+
+### To 2.4: Radzen.Blazor 12
+
+Tharga.Blazor 2.4 depends on Radzen.Blazor 12. Nothing in Tharga.Blazor's own API changed: every Radzen type it exposes (`Variant`, `ButtonSize`, `ButtonStyle`, `Shade`, `ProgressBarCircularSize`) and every Radzen component it renders has the same members in 12 as in 11, and no new registration, script or stylesheet is needed.
+
+Two things can still reach your application:
+
+- **A direct Radzen.Blazor reference below 12** now fails restore with `NU1605` (package downgrade). Raise it to 12.x, or remove it and use the version that comes with Tharga.Blazor.
+- **Radzen 12 changed some defaults** in components you may use directly: `RadzenDatePicker` navigates by drilling down instead of month and year drop-downs, and `RadzenChart` value axes, tick steps and category labels are laid out differently. Each change has a parameter that restores the old behaviour. See the [Radzen.Blazor 12.0.0 release notes](https://github.com/radzenhq/radzen-blazor/releases/tag/v12.0.0).
+
+`ExpandableCard` no longer uses Blazored.LocalStorage. It keeps the same storage keys and value format, so a card's remembered state survives the upgrade.
+
 ## Target Frameworks
 
 - .NET 10
 
 ## Dependencies
 
-- [Radzen.Blazor](https://blazor.radzen.com/)
-- [Blazored.LocalStorage](https://github.com/Blazored/LocalStorage)
+- [Radzen.Blazor](https://blazor.radzen.com/) 12
+- [Blazored.LocalStorage](https://github.com/Blazored/LocalStorage), only for the deprecated `ILocalStorageService` registration
 - [Tharga.Toolkit](https://www.nuget.org/packages/Tharga.Toolkit)
 
 ## Build & Test
