@@ -45,8 +45,8 @@
       registration, in the next major version.
     -->
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
-    <PackageReference Include="Radzen.Blazor" Version="12.1.7" />
-    <PackageReference Include="Tharga.Toolkit" Version="1.17.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.15" />
+    <PackageReference Include="Radzen.Blazor" Version="12.2.0" />
+    <PackageReference Include="Tharga.Toolkit" Version="1.18.0" />
   </ItemGroup>
 </Project>
