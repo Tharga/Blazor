@@ -157,6 +157,7 @@ Two things can still reach your application:
 ## Target Frameworks
 
 - .NET 10
+- .NET 11
 
 ## Dependencies
 
