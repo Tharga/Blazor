@@ -4,9 +4,9 @@ namespace Tharga.Blazor.Tests;
 
 internal class FakeNavigationManager : NavigationManager
 {
-    public FakeNavigationManager(string uri = "https://localhost/")
+    public FakeNavigationManager(string uri = "https://localhost/", string baseUri = "https://localhost/")
     {
-        Initialize("https://localhost/", uri);
+        Initialize(baseUri, uri);
     }
 
     public void ChangeUri(string uri)
