@@ -19,7 +19,16 @@
             return;
         }
 
-        await Js.InvokeVoidAsync("clipboard.copyText", Content);
+        try
+        {
+            await Js.InvokeVoidAsync("clipboard.copyText", Content);
+        }
+        catch (Exception e) when (e is JSException or JSDisconnectedException)
+        {
+            NotificationService.Notify(new NotificationMessage { Summary = "Could not copy to the clipboard.", Severity = NotificationSeverity.Warning });
+            return;
+        }
+
         NotificationService.Notify(new NotificationMessage { Summary = "Content has been copied.", Severity = NotificationSeverity.Info });
     }
 

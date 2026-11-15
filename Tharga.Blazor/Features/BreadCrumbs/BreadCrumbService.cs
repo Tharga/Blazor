@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Tharga.Blazor.Framework;
 
 namespace Tharga.Blazor.Features.BreadCrumbs;
 
@@ -42,19 +43,12 @@ public class BreadCrumbService
             _lastNormalizedUri = normalizedUri;
         }
 
-        var parts = navigationManager.Uri
-            .Split('/')
-            .Skip(3)
-            .ToArray();
+        var parts = NavigationPath.Segments(navigationManager);
 
         _segments = parts
-            .Where(x => !string.IsNullOrEmpty(x))
             .Select((text, i) =>
             {
                 var path = string.Join("/", parts.Take(i + 1));
-
-                var pos = text.IndexOf("?", StringComparison.Ordinal);
-                if (pos > 0) text = text.Substring(0, pos);
 
                 return new Crumb { Text = text, Path = path, Segment = text, SegmentPath = path };
             })
