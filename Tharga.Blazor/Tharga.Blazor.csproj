@@ -46,7 +46,7 @@
     -->
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Radzen.Blazor" Version="12.2.0" />
-    <PackageReference Include="Tharga.Toolkit" Version="1.18.0" />
+    <PackageReference Include="Tharga.Toolkit" Version="1.19.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.15" />
